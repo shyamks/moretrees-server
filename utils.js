@@ -19,6 +19,12 @@ module.exports = {
             })
         })
     },
+    mergeJsons: (dbObject, inputObject) =>{
+        for (key in inputObject){
+            dbObject[key] = inputObject[key]
+        }
+        return dbObject
+    },
     createError: (object) => {
         return { error: object };
     }

@@ -2,23 +2,22 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
-  userName: String,
+  username: String,
   email: String,
   password: String,
-  // bio: String,
-  // industry: String,
-  // role: String
-  // volunteerOptions; [{type: String}]
+  bio: String,
+  industry: String,
+  role: String,
+  volunteerOptions: [{type: String}]
 });
 
 const volunteerOptionsSchema = new Schema({
-  userName: String,
-  email: String,
-  options: [{type: String}]
+  optionText: String,
+  status: String
 });
 
 const User = mongoose.model('user', userSchema); 
-const VolunteerOptions = mongoose.model('VolunteerOptions', volunteerOptionsSchema);
+const VolunteerOptions = mongoose.model('volunteerOptions', volunteerOptionsSchema);
 
 module.exports = {
   User,

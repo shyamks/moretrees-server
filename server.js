@@ -7,17 +7,33 @@ require('./config');
 const typeDefs = gql`
     type User {
         id: ID!
-        userName: String
+        username: String
+        password: String
         email: String
+        phone: String
+        bio: String
+        industry: String
+        role: String
+        volunteerOptions: [String!]
         accessToken: String
         error: String
         message: String
     }
+    input UserInput {
+        accessToken: String
+        username: String
+        password: String
+        email: String
+        phone: String
+        bio: String
+        industry: String
+        role: String
+        volunteerOptions: [String!]
+    }
     type VolunteerOptions {
       id: String
-      userName: String
-      email: String
-      options: [String!]
+      optionText: String
+      status: String
     }
     type DonateStatus {
       email: String
@@ -31,12 +47,13 @@ const typeDefs = gql`
     type Query {
         getUsers: [User]
         loginUser(password: String, email: String!): User
-        getVolunteerOptions(email: String!, accessToken: String!) : VolunteerOptions
+        getVolunteerOptions(status: String, email: String!, accessToken: String!) : [VolunteerOptions]!
     }
     type Mutation {
         addUser(userName: String!, email: String!): User
+        updateUser(input: UserInput): User
+
         registerUser(userName: String!, email: String!, password: String!): User
-        submitVolunteerOptions(email: String!, options: [String!], accessToken: String): VolunteerOptions
     }
 `;
 

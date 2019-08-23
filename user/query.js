@@ -1,5 +1,8 @@
-let { getAccessToken, createError, verifyToken } = require('../utils');
-let { User, VolunteerOptions} = require('./models')
+let { getAccessToken, createError, verifyToken, mergeJsons } = require('../utils');
+let { User, VolunteerOptions } = require('./models')
+
+const ACTIVE = "ACTIVE"
+const INACTIVE = "INACTIVE"
 
 module.exports = {
     getUsers: async () => await User.find({}).exec(),
@@ -8,11 +11,9 @@ module.exports = {
             let user = await User.findOne({ email: args.email });
             if (user && user.password === args.password) {
                 let token = getAccessToken(args.email);
-                let response = user;
-                response.accessToken = token;
+                let response = mergeJsons(user, {accessToken: token});
                 return response;
             }
-            // let response = await User.create(args);
             else {
                 return createError('User with this email does not exist or the password is incorrect');
             }
@@ -22,14 +23,13 @@ module.exports = {
     },
     getVolunteerOptions: async (_, args) => {
         try {
-            let {accessToken, email} = args
+            let { accessToken, email, status } = args
             let verifiedToken = await verifyToken(accessToken)
             if (email === verifiedToken.email) {
-                let userVolOptions = await VolunteerOptions.findOne({ email })
-                console.log(userVolOptions,'userVolOptions')
+                let userVolOptions = await VolunteerOptions.find({ status })
+                console.log(userVolOptions, 'userVolOptions')
                 return userVolOptions
             }
-            // let response = await User.create(args)
             else {
                 return createError('User with this email does not exist or the password is incorrect')
             }
