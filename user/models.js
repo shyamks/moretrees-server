@@ -8,7 +8,7 @@ const userSchema = new Schema({
   bio: String,
   industry: String,
   role: String,
-  volunteerOptions: [{type: String}]
+  volunteerOptions: [{type: Object}]
 });
 
 const volunteerOptionsSchema = new Schema({

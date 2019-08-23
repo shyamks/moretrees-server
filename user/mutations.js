@@ -21,16 +21,15 @@ module.exports = {
     },
     updateUser: async (_, args) => {
         try {
-            const { input } = args;
-            const { accessToken, username, password, email, phone, bio, industry, role, volunteerOptions } = input
+            let { input } = args;
+            console.log(args,'sadf')
+            let { accessToken, username, password, email, phone, bio, industry, role, volunteerOptions } = input
             const user = await User.findOne({ email });
-            console.log(user, 'updateUser')
             let verifiedToken = await verifyToken(accessToken)
             if (email === verifiedToken.email && user) {
-                const mergedUser = mergeJsons(user, input)
-                console.log(mergedUser, 'mergedUser')
-                let response = await User.updateOne(mergedUser);
-                return response.ok ? mergedUser : createError('Error occured during update')
+                const mergedUserForResponse = mergeJsons(user, input)
+                let response = await User.updateOne(mergedUserForResponse);
+                return response.ok ? mergedUserForResponse : createError('Error occured during update')
             }
             else {
                 return createError('Email already exists. Please try another email');

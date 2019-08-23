@@ -20,10 +20,9 @@ module.exports = {
         })
     },
     mergeJsons: (dbObject, inputObject) =>{
-        for (key in inputObject){
-            dbObject[key] = inputObject[key]
-        }
-        return dbObject
+        let dbJSONobject = JSON.parse(JSON.stringify(dbObject));
+        let inputJSONobject = JSON.parse(JSON.stringify(inputObject));
+        return Object.assign({}, dbJSONobject, inputJSONobject)
     },
     createError: (object) => {
         return { error: object };

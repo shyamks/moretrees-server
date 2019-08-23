@@ -3,10 +3,13 @@ const { ApolloServer, gql } = require('apollo-server-express');
 const resolvers = require('./resolvers');
 require('./config');
 
-
-const typeDefs = gql`
-    type User {
-        id: ID!
+const volunteerOptions = `
+      id: String
+      optionText: String
+      status: String
+`
+const userInput = `
+        accessToken: String
         username: String
         password: String
         email: String
@@ -14,26 +17,24 @@ const typeDefs = gql`
         bio: String
         industry: String
         role: String
-        volunteerOptions: [String!]
-        accessToken: String
+`
+const typeDefs = gql`
+    type User {
+        id: ID!
+        ${userInput}
+        volunteerOptions: [VolunteerOptionsOutput!]
         error: String
         message: String
     }
     input UserInput {
-        accessToken: String
-        username: String
-        password: String
-        email: String
-        phone: String
-        bio: String
-        industry: String
-        role: String
-        volunteerOptions: [String!]
+        ${userInput}
+        volunteerOptions: [VolunteerOptions!]
     }
-    type VolunteerOptions {
-      id: String
-      optionText: String
-      status: String
+    type VolunteerOptionsOutput {
+      ${volunteerOptions}
+    }
+    input VolunteerOptions {
+      ${volunteerOptions}
     }
     type DonateStatus {
       email: String
@@ -42,18 +43,18 @@ const typeDefs = gql`
     type ProfileInfo {
       email: String
       id: String
-      userName: String
+      username: String
     }
     type Query {
         getUsers: [User]
         loginUser(password: String, email: String!): User
-        getVolunteerOptions(status: String, email: String!, accessToken: String!) : [VolunteerOptions]!
+        getVolunteerOptions(status: String, email: String!, accessToken: String!): [VolunteerOptionsOutput]!
     }
     type Mutation {
-        addUser(userName: String!, email: String!): User
+        addUser(username: String!, email: String!): User
         updateUser(input: UserInput): User
 
-        registerUser(userName: String!, email: String!, password: String!): User
+        registerUser(username: String!, email: String!, password: String!): User
     }
 `;
 
