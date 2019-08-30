@@ -1,4 +1,4 @@
-let { getAccessToken, createError, verifyToken, mergeJsons } = require('../utils');
+let { getAccessToken, createError, mergeJsons, getEmailFromContext } = require('../utils');
 const { User, VolunteerOptions } = require('./models');
 
 module.exports = {
@@ -19,20 +19,19 @@ module.exports = {
             return createError(e);
         }
     },
-    updateUser: async (_, args) => {
+    updateUser: async (_, args, context) => {
         try {
             let { input } = args;
-            console.log(args,'sadf')
-            let { accessToken, username, password, email, phone, bio, industry, role, volunteerOptions } = input
-            const user = await User.findOne({ email });
-            let verifiedToken = await verifyToken(accessToken)
-            if (email === verifiedToken.email && user) {
-                const mergedUserForResponse = mergeJsons(user, input)
-                let response = await User.updateOne(mergedUserForResponse);
-                return response.ok ? mergedUserForResponse : createError('Error occured during update')
-            }
-            else {
-                return createError('Email already exists. Please try another email');
+
+            let { username, password, email, phone, bio, industry, role, volunteerOptions } = input
+            let emailFromToken = await getEmailFromContext(context)
+            if (email === emailFromToken) {
+                const user = await User.findOne({ email });
+                if (!user) return createError('Email already exists. Please try another email');
+                let finalInput = { bio, industry, phone, role, volunteerOptions }
+                const mergedUserForResponse = mergeJsons(user, finalInput)
+                let response = await mergedUserForResponse.save()
+                return response ? response : createError('Error occured during update')
             }
         } catch (e) {
             return createError(e);

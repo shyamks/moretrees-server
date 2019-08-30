@@ -1,4 +1,4 @@
-let { getAccessToken, createError, verifyToken, mergeJsons } = require('../utils');
+let { getAccessToken, createError, mergeJsons, getEmailFromContext } = require('../utils');
 let { User, VolunteerOptions } = require('./models')
 
 const ACTIVE = "ACTIVE"
@@ -11,7 +11,7 @@ module.exports = {
             let user = await User.findOne({ email: args.email });
             if (user && user.password === args.password) {
                 let token = getAccessToken(args.email);
-                let response = mergeJsons(user, {accessToken: token});
+                let response = mergeJsons(user, { accessToken: token });
                 return response;
             }
             else {
@@ -21,18 +21,34 @@ module.exports = {
             return createError(e);
         }
     },
-    getVolunteerOptions: async (_, args) => {
+    getUser: async (_, args, context) => {
         try {
-            let { accessToken, email, status } = args
-            let verifiedToken = await verifyToken(accessToken)
-            if (email === verifiedToken.email) {
-                let userVolOptions = await VolunteerOptions.find({ status })
-                console.log(userVolOptions, 'userVolOptions')
-                return userVolOptions
+            let { email } = args
+            let emailFromToken = await getEmailFromContext(context)
+            if (email === emailFromToken) {
+                let user = await User.findOne({ email });
+                return user
+                // let userVolOptions = await VolunteerOptions.find({ status })
+                // return userVolOptions
             }
             else {
                 return createError('User with this email does not exist or the password is incorrect')
             }
+        } catch (e) {
+            return createError(e)
+        }
+    },
+    getVolunteerOptions: async (_, args, context) => {
+        try {
+            let { status } = args
+            // let emailFromToken = await getEmailFromContext(context)
+            // if (email === emailFromToken) {
+                let userVolOptions = await VolunteerOptions.find({ status })
+                return userVolOptions
+            // }
+            // else {
+            //     return createError('User with this email does not exist or the password is incorrect')
+            // }
         } catch (e) {
             return createError(e)
         }

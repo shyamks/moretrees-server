@@ -9,7 +9,6 @@ const volunteerOptions = `
       status: String
 `
 const userInput = `
-        accessToken: String
         username: String
         password: String
         email: String
@@ -21,6 +20,7 @@ const userInput = `
 const typeDefs = gql`
     type User {
         id: ID!
+        accessToken: String
         ${userInput}
         volunteerOptions: [VolunteerOptionsOutput!]
         error: String
@@ -48,7 +48,8 @@ const typeDefs = gql`
     type Query {
         getUsers: [User]
         loginUser(password: String, email: String!): User
-        getVolunteerOptions(status: String, email: String!, accessToken: String!): [VolunteerOptionsOutput]!
+        getUser(email: String!): User
+        getVolunteerOptions(status: String): [VolunteerOptionsOutput]!
     }
     type Mutation {
         addUser(username: String!, email: String!): User
@@ -62,7 +63,11 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   introspection: true,
-  playground: true
+  playground: true,
+  context: ({ req }) => {
+    let headers = req.headers
+    return { headers }
+  }
 });
 const app = express();
 server.applyMiddleware({ app });
