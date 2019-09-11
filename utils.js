@@ -7,6 +7,11 @@ module.exports = {
     getAccessToken: (emailId) => {
         return jwt.sign({ email: emailId }, SECRET);
     },
+    validateRegisterUser: ({ username, password, email }) => {
+        var usernameRegex = /^[a-zA-Z0-9]+$/;
+        var emailRegex = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+        return (usernameRegex.test(username) && emailRegex.test(email) && password.length >= 8)
+    },
     getEmailFromContext: async (context) => {
         const verifyToken = (token) => {
             return new Promise((resolve, reject) => {
@@ -37,7 +42,7 @@ module.exports = {
             dbObject[key] = inputObject[key]
         return dbObject
     },
-    createError: (object) => {
-        return { error: object };
+    createError: (object, status = 'error') => {
+        return { error: object, status };
     }
 }

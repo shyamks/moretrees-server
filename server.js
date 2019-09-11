@@ -17,6 +17,15 @@ const userInput = `
         industry: String
         role: String
 `
+
+const saplingOptions = `
+      id: String,
+      status: String,
+      saplingName: String,
+      saplingImage: String,
+      saplingCost: String,
+      remainingSaplings: String,
+`
 const typeDefs = gql`
     type User {
         id: ID!
@@ -36,6 +45,9 @@ const typeDefs = gql`
     input VolunteerOptions {
       ${volunteerOptions}
     }
+    type SaplingOptionsOutput {
+      ${saplingOptions}
+    }
     type DonateStatus {
       email: String
       id: String
@@ -45,17 +57,42 @@ const typeDefs = gql`
       id: String
       username: String
     }
+    input DonationPaymentInput {
+      email: String!,
+      token: String!, 
+      amount: Int!, 
+      donationAmount: Int!, 
+      items: [DonationItems]!
+    }
+    input DonationItems {
+      id: String!,
+      saplingName: String!,
+      count: Int!
+    }
+
+    type DonationPaymentOutput {
+      status: String
+      error: String
+    }
+    
+    type Status {
+      status: String
+      error: String
+    }
     type Query {
         getUsers: [User]
         loginUser(password: String, email: String!): User
         getUser(email: String!): User
         getVolunteerOptions(status: String): [VolunteerOptionsOutput]!
+        getSaplingOptions(status: String): [SaplingOptionsOutput]!
     }
     type Mutation {
         addUser(username: String!, email: String!): User
         updateUser(input: UserInput): User
 
         registerUser(username: String!, email: String!, password: String!): User
+        makePayment(username: String!, email: String!, token: String!): Status
+        makeDonation(input: DonationPaymentInput): Status
     }
 `;
 
@@ -72,6 +109,6 @@ const server = new ApolloServer({
 const app = express();
 server.applyMiddleware({ app });
 
-app.listen({ port: 4000 }, () =>
-  console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
+app.listen({ port: 5000 }, () =>
+  console.log(`🚀 Server ready at http://localhost:5000${server.graphqlPath}`)
 );

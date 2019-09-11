@@ -16,10 +16,32 @@ const volunteerOptionsSchema = new Schema({
   status: String
 });
 
+const saplingOptionsSchema = new Schema({
+  status: String,
+  saplingName: String,
+  saplingImage: String,
+  saplingCost: String,
+  remainingSaplings: String,
+})
+
+const userSaplingDonationSchema = new Schema({
+   email: String,
+   amount: Number,
+   donationAmount: Number,
+   items: [{type: Object}],
+   token: String,
+   createdAt: { type: Date, default: Date.now },
+   paymentDetails: {type: Object}
+})
+
 const User = mongoose.model('user', userSchema); 
 const VolunteerOptions = mongoose.model('volunteerOptions', volunteerOptionsSchema);
+const SaplingOptions = mongoose.model('saplingOptions', saplingOptionsSchema);
+const UserSaplingDonation = mongoose.model('userSaplingDonation', userSaplingDonationSchema);
 
 module.exports = {
   User,
-  VolunteerOptions
+  VolunteerOptions,
+  SaplingOptions,
+  UserSaplingDonation
 };
