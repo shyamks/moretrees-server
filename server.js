@@ -73,6 +73,7 @@ const typeDefs = gql`
     type DonationPaymentOutput {
       status: String
       error: String
+      referenceId: String
     }
     
     type Status {
@@ -92,7 +93,7 @@ const typeDefs = gql`
 
         registerUser(username: String!, email: String!, password: String!): User
         makePayment(username: String!, email: String!, token: String!): Status
-        makeDonation(input: DonationPaymentInput): Status
+        makeDonation(input: DonationPaymentInput): DonationPaymentOutput
     }
 `;
 
