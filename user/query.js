@@ -1,5 +1,5 @@
 let { getAccessToken, createError, mergeJsons, getEmailFromContext } = require('../utils');
-let { User, VolunteerOptions, SaplingOptions } = require('./models')
+let { User, VolunteerOptions, SaplingOptions, UserSaplingDonation } = require('./models')
 
 const ACTIVE = "ACTIVE"
 const INACTIVE = "INACTIVE"
@@ -51,6 +51,22 @@ module.exports = {
         let { status } = args
         let saplingOptions = await SaplingOptions.find({ status })
         return saplingOptions
+    },
+    myDonations: async (_, args, context) => {
+        try {
+            let { email } = args
+            console.log(email,'email')
+            let emailFromToken = await getEmailFromContext(context)
+            if (email === emailFromToken) {
+                let userDonations = await UserSaplingDonation.find({ email });
+                return userDonations
+            }
+            else {
+                return createError('User with this email does not exist or the password is incorrect')
+            }
+        } catch (e) {
+            return createError(e)
+        }
     }
 
 };

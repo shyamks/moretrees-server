@@ -1,6 +1,10 @@
 const express = require('express');
+const lodash = require('lodash')
+
+const {GraphQLJSONObject} = require('graphql-type-json');
 const { ApolloServer, gql } = require('apollo-server-express');
 const resolvers = require('./resolvers');
+
 require('./config');
 
 const volunteerOptions = `
@@ -27,6 +31,8 @@ const saplingOptions = `
       remainingSaplings: String,
 `
 const typeDefs = gql`
+ 
+    scalar JSON
     type User {
         id: ID!
         accessToken: String
@@ -58,15 +64,15 @@ const typeDefs = gql`
       username: String
     }
     input DonationPaymentInput {
-      email: String!,
-      token: String!, 
-      amount: Int!, 
-      donationAmount: Int!, 
+      email: String!
+      token: String! 
+      amount: Int! 
+      donationAmount: Int! 
       items: [DonationItems]!
     }
     input DonationItems {
-      id: String!,
-      saplingName: String!,
+      id: String!
+      saplingName: String!
       count: Int!
     }
 
@@ -74,6 +80,17 @@ const typeDefs = gql`
       status: String
       error: String
       referenceId: String
+    }
+
+    type MyDonationsOut {
+      id: String
+      email: String
+      amount: Int
+      donationAmount: Int
+      items: [JSON]
+      token: String
+      createdAt: String
+      paymentDetails: JSON
     }
     
     type Status {
@@ -86,6 +103,7 @@ const typeDefs = gql`
         getUser(email: String!): User
         getVolunteerOptions(status: String): [VolunteerOptionsOutput]!
         getSaplingOptions(status: String): [SaplingOptionsOutput]!
+        myDonations(email: String): [MyDonationsOut]
     }
     type Mutation {
         addUser(username: String!, email: String!): User
@@ -99,7 +117,7 @@ const typeDefs = gql`
 
 const server = new ApolloServer({
   typeDefs,
-  resolvers,
+  resolvers : lodash.assign({JSON: GraphQLJSONObject}, resolvers),
   introspection: true,
   playground: true,
   context: ({ req }) => {
