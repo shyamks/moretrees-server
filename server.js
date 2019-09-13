@@ -1,7 +1,7 @@
 const express = require('express');
 const lodash = require('lodash')
 
-const {GraphQLJSONObject} = require('graphql-type-json');
+const { GraphQLJSONObject } = require('graphql-type-json');
 const { ApolloServer, gql } = require('apollo-server-express');
 const resolvers = require('./resolvers');
 
@@ -90,7 +90,6 @@ const typeDefs = gql`
       items: [JSON]
       token: String
       createdAt: String
-      paymentDetails: JSON
     }
     
     type Status {
@@ -117,13 +116,26 @@ const typeDefs = gql`
 
 const server = new ApolloServer({
   typeDefs,
-  resolvers : lodash.assign({JSON: GraphQLJSONObject}, resolvers),
+  resolvers: lodash.assign({ JSON: GraphQLJSONObject }, resolvers),
   introspection: true,
   playground: true,
   context: ({ req }) => {
     let headers = req.headers
     return { headers }
-  }
+  },
+  formatError: error => {
+    // logger.warn(error);
+    return error;
+  },
+  formatResponse: (response, query) => {
+    // logger.info('GraphQL query and variables', {
+    //   query: query.queryString,
+    //   vars: query.variables,
+    // });
+    // const omitTypename = (key, value) => (key === '__typename' ? undefined : value);
+    // let finalResponse = JSON.parse(JSON.stringify(response), omitTypename);
+    return response;
+  },
 });
 const app = express();
 server.applyMiddleware({ app });
