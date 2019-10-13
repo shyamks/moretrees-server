@@ -5,7 +5,6 @@ const ACTIVE = "ACTIVE"
 const INACTIVE = "INACTIVE"
 
 module.exports = {
-    getUsers: async () => await User.find({}).exec(),
     loginUser: async (_, args) => {
         try {
             let user = await User.findOne({ email: args.email });
@@ -38,6 +37,23 @@ module.exports = {
             return createError(e)
         }
     },
+    getAllUsers: async (_, args, context) => {
+        try {
+            let { email } = args
+            let emailFromToken = await getEmailFromContext(context)
+            if (email === emailFromToken) {
+                let users = await User.find({});
+                return users
+                // let userVolOptions = await VolunteerOptions.find({ status })
+                // return userVolOptions
+            }
+            else {
+                return createError('User with this email does not exist or the password is incorrect')
+            }
+        } catch (e) {
+            return createError(e)
+        }
+    },
     getVolunteerOptions: async (_, args, context) => {
         try {
             let { status } = args
@@ -49,16 +65,30 @@ module.exports = {
     },
     getSaplingOptions: async (_, args, context) => {
         let { status } = args
-        let saplingOptions = await SaplingOptions.find({ status })
+        let saplingOptions = await SaplingOptions.find(status ? { status }: { })
         return saplingOptions
     },
     myDonations: async (_, args, context) => {
         try {
             let { email } = args
-            console.log(email,'email')
             let emailFromToken = await getEmailFromContext(context)
             if (email === emailFromToken) {
                 let userDonations = await UserSaplingDonation.find({ email });
+                return userDonations
+            }
+            else {
+                return createError('User with this email does not exist or the password is incorrect')
+            }
+        } catch (e) {
+            return createError(e)
+        }
+    },
+    getAllUserDonations: async (_, args, context) => {
+        try {
+            let { email } = args
+            let emailFromToken = await getEmailFromContext(context)
+            if (email === emailFromToken) {
+                let userDonations = await UserSaplingDonation.find({});
                 return userDonations
             }
             else {

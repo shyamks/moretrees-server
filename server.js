@@ -20,15 +20,22 @@ const userInput = `
         bio: String
         industry: String
         role: String
+        twitterProfile: String
+        instaProfile: String
+        fbProfile: String
+        availableWhen: String
+        availableWhat: String
 `
 
 const saplingOptions = `
       id: String,
       status: String,
-      saplingName: String,
-      saplingImage: String,
-      saplingCost: String,
-      remainingSaplings: String,
+      type: String,
+      title: String,
+      subtitle: String,
+      cost: String,
+      content: String,
+      remaining: String,
 `
 const typeDefs = gql`
  
@@ -43,13 +50,16 @@ const typeDefs = gql`
     }
     input UserInput {
         ${userInput}
-        volunteerOptions: [VolunteerOptions!]
+        volunteerOptions: [VolunteerOptions]
     }
     type VolunteerOptionsOutput {
       ${volunteerOptions}
     }
     input VolunteerOptions {
       ${volunteerOptions}
+    }
+    input SaplingOptionsInput {
+      ${saplingOptions}
     }
     type SaplingOptionsOutput {
       ${saplingOptions}
@@ -67,12 +77,11 @@ const typeDefs = gql`
       email: String!
       token: String! 
       amount: Int! 
-      donationAmount: Int! 
       items: [DonationItems]!
     }
     input DonationItems {
       id: String!
-      saplingName: String!
+      title: String!
       count: Int!
     }
 
@@ -86,7 +95,6 @@ const typeDefs = gql`
       id: String
       email: String
       amount: Int
-      donationAmount: Int
       items: [JSON]
       token: String
       createdAt: String
@@ -97,20 +105,23 @@ const typeDefs = gql`
       error: String
     }
     type Query {
-        getUsers: [User]
         loginUser(password: String, email: String!): User
         getUser(email: String!): User
+        getAllUsers(email: String!): [User]
+
         getVolunteerOptions(status: String): [VolunteerOptionsOutput]!
         getSaplingOptions(status: String): [SaplingOptionsOutput]!
         myDonations(email: String): [MyDonationsOut]
+        getAllUserDonations(email: String!): [MyDonationsOut]
     }
     type Mutation {
-        addUser(username: String!, email: String!): User
         updateUser(input: UserInput): User
+        updateUsers(input: [UserInput], email: String!): Status
 
-        registerUser(username: String!, email: String!, password: String!): User
+        registerUser(username: String!, email: String!, password: String!, phone: String): User
         makePayment(username: String!, email: String!, token: String!): Status
         makeDonation(input: DonationPaymentInput): DonationPaymentOutput
+        updateSaplings(input: [SaplingOptionsInput]!, email: String!) : Status
     }
 `;
 

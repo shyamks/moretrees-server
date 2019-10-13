@@ -1,20 +1,23 @@
-const { registerUser, addUser, updateUser, makePayment, makeDonation } = require('./user/mutations');
+const { registerUser, addUser, updateUser, updateUsers, makePayment, makeDonation, updateSaplings } = require('./user/mutations');
 
-const { getUsers, loginUser, getUser, getVolunteerOptions, getSaplingOptions, myDonations} = require('./user/query.js');
+const { loginUser, getUser, getVolunteerOptions, getSaplingOptions, myDonations, getAllUserDonations, getAllUsers} = require('./user/query.js');
 
 module.exports = {
     Query: {
-        getUsers,
         loginUser,
         getUser,
+        getAllUsers,
         getVolunteerOptions,
         getSaplingOptions,
-        myDonations
+        myDonations,
+        getAllUserDonations
     },
     Mutation: {
         registerUser,
         updateUser,
+        updateUsers,
         makePayment,
-        makeDonation
+        makeDonation,
+        updateSaplings
     }
 };

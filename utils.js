@@ -10,7 +10,7 @@ module.exports = {
     validateRegisterUser: ({ username, password, email }) => {
         var usernameRegex = /^[a-zA-Z0-9]+$/;
         var emailRegex = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-        return (usernameRegex.test(username) && emailRegex.test(email) && password.length >= 8)
+        return (usernameRegex.test(username) && emailRegex.test(email) && password.length >= 6)
     },
     getEmailFromContext: async (context) => {
         const verifyToken = (token) => {
@@ -38,11 +38,16 @@ module.exports = {
     mergeJsons: (dbObject, inputObject) => {
         // let dbJSONobject = JSON.parse(JSON.stringify(otherKeys));
         // let inputJSONobject = JSON.parse(JSON.stringify(inputObject));
-        for (key in inputObject)
-            dbObject[key] = inputObject[key]
+        for (key in inputObject){
+            if(inputObject[key] != null)
+                dbObject[key] = inputObject[key]
+        }
         return dbObject
     },
     createError: (object, status = 'error') => {
         return { error: object, status };
+    },
+    createSuccess: (status = 'success') => {
+        return { status };
     }
 }

@@ -9,7 +9,12 @@ const userSchema = new Schema({
   bio: String,
   industry: String,
   role: String,
-  volunteerOptions: [{type: Object}]
+  twitterProfile: String,
+  instaProfile: String,
+  fbProfile: String,
+  volunteerOptions: [{type: Object}],
+  availableWhen: String,
+  availableWhat: String
 });
 
 const volunteerOptionsSchema = new Schema({
@@ -19,16 +24,17 @@ const volunteerOptionsSchema = new Schema({
 
 const saplingOptionsSchema = new Schema({
   status: String,
-  saplingName: String,
-  saplingImage: String,
-  saplingCost: String,
-  remainingSaplings: String,
+  type: String,
+  title: String,
+  subtitle: String,
+  cost: String,
+  content: String,
+  remaining: String,
 })
 
 const userSaplingDonationSchema = new Schema({
    email: String,
    amount: Number,
-   donationAmount: Number,
    items: [{type: Object}],
    token: String,
    createdAt: { type: Date, default: Date.now },
