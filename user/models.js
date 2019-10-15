@@ -12,9 +12,11 @@ const userSchema = new Schema({
   twitterProfile: String,
   instaProfile: String,
   fbProfile: String,
+  type: String,
   volunteerOptions: [{type: Object}],
   availableWhen: String,
-  availableWhat: String
+  availableWhat: String,
+  createdAt: Date
 });
 
 const volunteerOptionsSchema = new Schema({

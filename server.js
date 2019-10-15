@@ -44,6 +44,7 @@ const typeDefs = gql`
         id: ID!
         accessToken: String
         ${userInput}
+        type: String,
         volunteerOptions: [VolunteerOptionsOutput!]
         error: String
         message: String
@@ -60,6 +61,11 @@ const typeDefs = gql`
     }
     input SaplingOptionsInput {
       ${saplingOptions}
+    }
+    input UpdateSaplingsInput {
+      ${saplingOptions}
+      createNewRow: Boolean
+      removeRow: Boolean
     }
     type SaplingOptionsOutput {
       ${saplingOptions}
@@ -104,6 +110,19 @@ const typeDefs = gql`
       status: String
       error: String
     }
+
+    type UpdateSaplingsResponse {
+      response: [SaplingOptionsOutput]!
+      status: String
+      error: String
+    }
+
+    type UpdateUsersResponse {
+      response: [User]!
+      status: String
+      error: String
+    }
+
     type Query {
         loginUser(password: String, email: String!): User
         getUser(email: String!): User
@@ -116,12 +135,12 @@ const typeDefs = gql`
     }
     type Mutation {
         updateUser(input: UserInput): User
-        updateUsers(input: [UserInput], email: String!): Status
+        updateUsers(input: [UserInput], email: String!): UpdateUsersResponse
 
         registerUser(username: String!, email: String!, password: String!, phone: String): User
         makePayment(username: String!, email: String!, token: String!): Status
         makeDonation(input: DonationPaymentInput): DonationPaymentOutput
-        updateSaplings(input: [SaplingOptionsInput]!, email: String!) : Status
+        updateSaplings(input: [UpdateSaplingsInput]!, email: String!) : UpdateSaplingsResponse
     }
 `;
 

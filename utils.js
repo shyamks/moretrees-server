@@ -8,8 +8,8 @@ module.exports = {
         return jwt.sign({ email: emailId }, SECRET);
     },
     validateRegisterUser: ({ username, password, email }) => {
-        var usernameRegex = /^[a-zA-Z0-9]+$/;
-        var emailRegex = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+        let usernameRegex = /^[a-zA-Z0-9]+$/
+        let emailRegex = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/
         return (usernameRegex.test(username) && emailRegex.test(email) && password.length >= 6)
     },
     getEmailFromContext: async (context) => {

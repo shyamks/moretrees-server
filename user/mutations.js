@@ -14,10 +14,9 @@ module.exports = {
         try {
             const { username, password, email, phone: mobile } = args;
             const user = await User.find({ email: args.email });
-            console.log(user, 'wlwllw')
             if (!user.length) {
                 if (validateRegisterUser({ username, password, email })) {
-                    let response = await User.create({ username, password, email, mobile });
+                    let response = await User.create({ username, password, email, mobile, createdAt: new Date() });
                     response.accessToken = getAccessToken(args.email);
                     return response;
                 }
@@ -57,21 +56,24 @@ module.exports = {
     updateUsers: async (_, args, context) => {
         try {
             let { input, email: emailFromRequest } = args;
-            // console.log(input, email, 'really')
             let emailFromToken = await getEmailFromContext(context)
-            // console.log(args, 'args')
             if (emailFromRequest === emailFromToken) {
-                for (let i = 0; i < input.length; i++) {
-                    let { username, password, email, phone, volunteerOptions, twitterProfile, instaProfile, fbProfile, availableWhen, availableWhat } = input[i]
-                    const user = await User.findOne({ email });
-                    if (!user) return createError('One of the emails do not exist. Please try another email');
-                    let finalInput = { username, password, phone, volunteerOptions, twitterProfile, instaProfile, fbProfile, availableWhen, availableWhat }
-                    console.log(finalInput, 'finalInput')
-                    const mergedUserForResponse = mergeJsons(user, finalInput)
-                    let response = await mergedUserForResponse.save()
-                    if (!response) createError('Error occured during update')
+                const isAdminUserCheck = await User.findOne({ email: emailFromRequest })
+                if (isAdminUserCheck.type == 'admin'){
+                    for (let i = 0; i < input.length; i++) {
+                        let { username, password, email, phone, volunteerOptions, twitterProfile, instaProfile, fbProfile, availableWhen, availableWhat } = input[i]
+                        const user = await User.findOne({ email });
+                        if (!user) return createError('One of the emails do not exist. Please try another email');
+                        let finalInput = { username, password, phone, volunteerOptions, twitterProfile, instaProfile, fbProfile, availableWhen, availableWhat }
+                        console.log(finalInput, 'finalInput')
+                        const mergedUserForResponse = mergeJsons(user, finalInput)
+                        let response = await mergedUserForResponse.save()
+                        if (!response) createError('Error occured during update')
+                    }
+                    const users = await User.find({ })
+                    return { response: users, status: 'success' }
                 }
-                return createSuccess()
+                return createError('User not the boss. Bye')
             }
             return createError('Email not valid')
         } catch (e) {
@@ -189,21 +191,35 @@ module.exports = {
     updateSaplings: async (_, args, context) => {
         try {
             let { input, email: emailFromRequest } = args;
-            // console.log(input, email, 'really')
             let emailFromToken = await getEmailFromContext(context)
-            // console.log(args, 'args')
             if (emailFromRequest === emailFromToken) {
-                for (let i = 0; i < input.length; i++) {
-                    let { id, status, type, title, subtitle, cost, content, remaining } = input[i]
-                    const sapling = await SaplingOptions.findOne({ _id: new mongoose.Types.ObjectId(id) });
-                    if (!sapling) return createError('Sapling does not exist');
-                    let finalInput = { status, type, title, subtitle, cost, content, remaining }
-                    console.log(finalInput, 'finalInput')
-                    const mergedSapling = mergeJsons(sapling, finalInput)
-                    let response = await mergedSapling.save()
-                    if (!response) createError('Error occured during update')
+                const user = await User.findOne({ email: emailFromRequest})
+                if (user.type == 'admin'){
+                    for (let i = 0; i < input.length; i++) {
+                        let { id, status, type, title, subtitle, cost, content, remaining, createNewRow, removeRow } = input[i]
+                        if (createNewRow && id) {
+                            let createResponse = await SaplingOptions.create({ status, type, title, subtitle, cost, content, remaining })
+                            if (!createResponse) createError('Error occured during creating')
+                        }
+                        else if (removeRow && id) {
+                            let deleteResponse = await SaplingOptions.deleteOne({ _id: new mongoose.Types.ObjectId(id) })
+                            if (!deleteResponse) createError('Error occured during remove')
+                        }
+                        else {
+                            const sapling = await SaplingOptions.findOne({ _id: new mongoose.Types.ObjectId(id) });
+                            if (!sapling) return createError('Sapling does not exist');
+                            let finalInput = { status, type, title, subtitle, cost, content, remaining }
+                            console.log(finalInput, 'finalInput')
+                            const mergedSapling = mergeJsons(sapling, finalInput)
+                            let response = await mergedSapling.save()
+                            if (!response) createError('Error occured during update')
+                        }
+                    }
+                    const saplings = await SaplingOptions.find({ })
+                    return { response: saplings, status: 'success' }
                 }
-                return createSuccess()
+                return createError('User not admin. Sneaky.')
+                
             }
             return createError('Email not valid')
         } catch (e) {
