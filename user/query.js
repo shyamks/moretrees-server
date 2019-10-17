@@ -1,4 +1,4 @@
-let { getAccessToken, createError, mergeJsons, getEmailFromContext } = require('../utils');
+let { getAccessToken, confirmValidityOfUser, createError, mergeJsons, getEmailFromContext, EMAIL, TWITTER } = require('../utils');
 let { User, VolunteerOptions, SaplingOptions, UserSaplingDonation } = require('./models')
 
 const ACTIVE = "ACTIVE"
@@ -9,7 +9,7 @@ module.exports = {
         try {
             let user = await User.findOne({ email: args.email });
             if (user && user.password === args.password) {
-                let token = getAccessToken(args.email);
+                let token = getAccessToken(EMAIL, args.email);
                 let response = mergeJsons(user, { accessToken: token });
                 return response;
             }
@@ -22,10 +22,10 @@ module.exports = {
     },
     getUser: async (_, args, context) => {
         try {
-            let { email } = args
-            let emailFromToken = await getEmailFromContext(context)
-            if (email === emailFromToken) {
-                let user = await User.findOne({ email });
+            let { email, twitterId, instaId } = args
+            let { isValid, decodedContext } = await confirmValidityOfUser({ email, twitterId, instaId }, context)
+            if (isValid) {
+                const user = await User.findOne(decodedContext);
                 return user
                 // let userVolOptions = await VolunteerOptions.find({ status })
                 // return userVolOptions
@@ -39,9 +39,9 @@ module.exports = {
     },
     getAllUsers: async (_, args, context) => {
         try {
-            let { email } = args
-            let emailFromToken = await getEmailFromContext(context)
-            if (email === emailFromToken) {
+            let { email, twitterId, instaId } = args
+            let { isValid, decodedContext } = await confirmValidityOfUser({ email, twitterId, instaId }, context)
+            if (isValid) {
                 let users = await User.find({});
                 return users
                 // let userVolOptions = await VolunteerOptions.find({ status })
@@ -70,10 +70,10 @@ module.exports = {
     },
     myDonations: async (_, args, context) => {
         try {
-            let { email } = args
-            let emailFromToken = await getEmailFromContext(context)
-            if (email === emailFromToken) {
-                let userDonations = await UserSaplingDonation.find({ email });
+            let { email, twitterId, instaId } = args
+            let { isValid, decodedContext } = await confirmValidityOfUser({ email, twitterId, instaId }, context)
+            if (isValid) {
+                let userDonations = await UserSaplingDonation.find(decodedContext);
                 return userDonations
             }
             else {
@@ -85,9 +85,9 @@ module.exports = {
     },
     getAllUserDonations: async (_, args, context) => {
         try {
-            let { email } = args
-            let emailFromToken = await getEmailFromContext(context)
-            if (email === emailFromToken) {
+            let { email, twitterId, instaId } = args
+            let { isValid, decodedContext } = await confirmValidityOfUser({ email, twitterId, instaId }, context)
+            if (isValid) {
                 let userDonations = await UserSaplingDonation.find({});
                 return userDonations
             }

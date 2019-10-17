@@ -10,7 +10,9 @@ const userSchema = new Schema({
   industry: String,
   role: String,
   twitterProfile: String,
+  twitterId: String,
   instaProfile: String,
+  instaId: String,
   fbProfile: String,
   type: String,
   volunteerOptions: [{type: Object}],
@@ -36,6 +38,8 @@ const saplingOptionsSchema = new Schema({
 
 const userSaplingDonationSchema = new Schema({
    email: String,
+   twitterId: String,
+   instaId: String,
    amount: Number,
    items: [{type: Object}],
    token: String,

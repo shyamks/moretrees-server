@@ -1,9 +1,17 @@
-const express = require('express');
+const express = require('express')
 const lodash = require('lodash')
 
-const { GraphQLJSONObject } = require('graphql-type-json');
-const { ApolloServer, gql } = require('apollo-server-express');
-const resolvers = require('./resolvers');
+const { GraphQLJSONObject } = require('graphql-type-json')
+const { ApolloServer, gql } = require('apollo-server-express')
+const resolvers = require('./resolvers')
+
+const cookieSession = require("cookie-session")
+const cookieParser = require("cookie-parser")
+const keys = require("./keys")
+const cors = require("cors")
+const passport = require("passport")
+const passportSetup = require("./passportSetup")
+const authRoutes = require('./authRoutes')
 
 require('./config');
 
@@ -21,7 +29,9 @@ const userInput = `
         industry: String
         role: String
         twitterProfile: String
+        twitterId: String
         instaProfile: String
+        instaId: String
         fbProfile: String
         availableWhen: String
         availableWhat: String
@@ -125,22 +135,22 @@ const typeDefs = gql`
 
     type Query {
         loginUser(password: String, email: String!): User
-        getUser(email: String!): User
-        getAllUsers(email: String!): [User]
+        getUser(email: String, twitterId: String, instaId: String): User
+        getAllUsers(email: String, twitterId: String, instaId: String): [User]
 
         getVolunteerOptions(status: String): [VolunteerOptionsOutput]!
         getSaplingOptions(status: String): [SaplingOptionsOutput]!
-        myDonations(email: String): [MyDonationsOut]
-        getAllUserDonations(email: String!): [MyDonationsOut]
+        myDonations(email: String, twitterId: String, instaId: String): [MyDonationsOut]
+        getAllUserDonations(email: String, twitterId: String, instaId: String): [MyDonationsOut]
     }
     type Mutation {
         updateUser(input: UserInput): User
-        updateUsers(input: [UserInput], email: String!): UpdateUsersResponse
+        updateUsers(input: [UserInput], email: String, twitterId: String, instaId: String): UpdateUsersResponse
 
         registerUser(username: String!, email: String!, password: String!, phone: String): User
-        makePayment(username: String!, email: String!, token: String!): Status
-        makeDonation(input: DonationPaymentInput): DonationPaymentOutput
-        updateSaplings(input: [UpdateSaplingsInput]!, email: String!) : UpdateSaplingsResponse
+        makePayment(username: String!, email: String, twitterId: String, instaId: String, token: String!): Status
+        makeDonation(input: DonationPaymentInput, email: String, twitterId: String, instaId: String): DonationPaymentOutput
+        updateSaplings(input: [UpdateSaplingsInput]!, email: String, twitterId: String, instaId: String) : UpdateSaplingsResponse
     }
 `;
 
@@ -168,6 +178,58 @@ const server = new ApolloServer({
   },
 });
 const app = express();
+
+app.use(
+  cookieSession({
+    name: "session",
+    keys: [keys.COOKIE_KEY],
+    maxAge: 24 * 60 * 60 * 100
+  })
+);
+
+// parse cookies
+app.use(cookieParser());
+
+// initalize passport
+app.use(passport.initialize());
+// deserialize cookie from the browser
+app.use(passport.session());
+
+app.use(
+  cors({
+    origin: "http://localhost:3000", // allow to server to accept request from different origin
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true // allow session cookie from browser to pass through
+  })
+);
+
+// set up routes
+app.use("/auth", authRoutes);
+
+const authCheck = (req, res, next) => {
+  if (!req.user) {
+    res.status(401).json({
+      authenticated: false,
+      message: "user has not been authenticated"
+    });
+  } else {
+    next();
+  }
+};
+
+// if it's already login, send the profile response,
+// otherwise, send a 401 response that the user is not authenticated
+// authCheck before navigating to home page
+app.get("/", authCheck, (req, res) => {
+  res.status(200).json({
+    authenticated: true,
+    message: "user successfully authenticated",
+    user: req.user,
+    cookies: req.cookies
+  });
+});
+
+
 server.applyMiddleware({ app });
 
 app.listen({ port: 5000 }, () =>
