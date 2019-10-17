@@ -1,7 +1,7 @@
 const lodash = require('lodash')
 const mongoose = require('mongoose');
 
-let { getAccessToken, createError, createSuccess, mergeJsons, getEmailFromContext, validateRegisterUser } = require('../utils');
+let { getAccessToken, createError, createSuccess, mergeJsons, getEmailFromContext, validateRegisterUser, prepareObjectForLog } = require('../utils');
 const { User, VolunteerOptions, UserSaplingDonation, SaplingOptions } = require('./models');
 const Razorpay = require('razorpay')
 
@@ -116,7 +116,7 @@ module.exports = {
             let { email, token, amount, items } = input
             // let emailFromToken = await getEmailFromContext(context)
             // if (email === emailFromToken) {  
-            winstonLogger.info('makeDonation request args', args)
+            winstonLogger.info(`makeDonation request args => ${prepareObjectForLog(args)}`)
 
             let finalToken = token
             let finalAmount = amount * 100;
@@ -140,12 +140,12 @@ module.exports = {
                 return false
             }).reduce((finalValue, booleanValue) => booleanValue && finalValue, true)
             // console.log(canTransactionHappen, 'tokeeeee')
-            if (!canTransactionHappen){
-                winstonLogger.info('Error in transaction', { error: 'Not enough saplings left to make a donation'})
+            if (!canTransactionHappen) {
+                winstonLogger.info(`Error in transaction => ${prepareObjectForLog({ error: 'Not enough saplings left to make a donation' })}  `)
                 return createError('Not enough saplings left to make a donation')
             }
-            if (!token){
-                winstonLogger.info('Error in transaction', { error: 'Token not present in the input'})
+            if (!token) {
+                winstonLogger.info(`Error in transaction => ${prepareObjectForLog({ error: 'Token not present in the input' })}  `)
                 return createError('Token not present in the input');
             }
             else {
@@ -189,12 +189,12 @@ module.exports = {
 
                 console.log(createSaplingDonationResult, 'yeyeyey')
                 let returnValue = { status: 'success', referenceId: createSaplingDonationResult.id }
-                winstonLogger.info('Transaction SUCCESSFULL', { ...returnValue, ...createSaplingDonationResult} )
+                winstonLogger.info(`Transaction SUCCESSFULL => ${prepareObjectForLog({ ...returnValue, ...createSaplingDonationResult})} `)
                 return returnValue
             }
         } catch (e) {
             console.log(e, 'wtf')
-            winstonLogger.info('Error in transaction', e,'\nNEW_LINE')
+            winstonLogger.info(`Error in transaction =>  ${prepareObjectForLog(e)} `)
             return createError(e);
         }
     },

@@ -44,6 +44,9 @@ module.exports = {
         }
         return dbObject
     },
+    prepareObjectForLog: (obj) => {
+        return JSON.stringify(obj)
+    },
     createError: (object, status = 'error') => {
         return { error: object, status };
     },
