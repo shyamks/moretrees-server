@@ -5,6 +5,8 @@ let { getAccessToken, createError, createSuccess, mergeJsons, getEmailFromContex
 const { User, VolunteerOptions, UserSaplingDonation, SaplingOptions } = require('./models');
 const Razorpay = require('razorpay')
 
+const winstonLogger = require('../logger')
+
 const razorpayInstance = new Razorpay({
     key_id: 'rzp_test_cxpMW5qj3FfIZD',
     key_secret: 'B3AunkV7bOzjYdzIUHPFGtVc'
@@ -113,11 +115,12 @@ module.exports = {
             // console.log('inupt', args)
             let { email, token, amount, items } = input
             // let emailFromToken = await getEmailFromContext(context)
-            // if (email === emailFromToken) {
+            // if (email === emailFromToken) {  
+            winstonLogger.info('makeDonation request args', args)
 
             let finalToken = token
             let finalAmount = amount * 100;
-
+            
             if (finalAmount < 50 * 100)
                 return createError('Final amount is below Rs 50')
             let saplingOptions = await SaplingOptions.find({ status: 'ACTIVE' })
@@ -136,11 +139,15 @@ module.exports = {
                 }
                 return false
             }).reduce((finalValue, booleanValue) => booleanValue && finalValue, true)
-            console.log(canTransactionHappen, 'tokeeeee')
-            if (!canTransactionHappen)
+            // console.log(canTransactionHappen, 'tokeeeee')
+            if (!canTransactionHappen){
+                winstonLogger.info('Error in transaction', { error: 'Not enough saplings left to make a donation'})
                 return createError('Not enough saplings left to make a donation')
-            if (!token)
+            }
+            if (!token){
+                winstonLogger.info('Error in transaction', { error: 'Token not present in the input'})
                 return createError('Token not present in the input');
+            }
             else {
                 const bulkWriteSaplingOptions = async (saplingItems, saplingOptionsMap) => {
                     let updatedSaplingItemsOperations = saplingItems.map(saplingItem => {
@@ -170,7 +177,8 @@ module.exports = {
                 }
                 catch (e) {
                     console.log(e,'charges problem')
-                    return createError('Problem while making a transaction.')
+                    winstonLogger.info('Transaction UNSUCCESSFULL', e)
+                    return createError('Problem during transaction.')
                 }
 
                 if (saplingItems.length) {
@@ -180,11 +188,13 @@ module.exports = {
                 let createSaplingDonationResult = await UserSaplingDonation.create({ email, token, amount, items, paymentDetails: charge })
 
                 console.log(createSaplingDonationResult, 'yeyeyey')
-                return { status: 'success', referenceId: createSaplingDonationResult.id }
-                // }
+                let returnValue = { status: 'success', referenceId: createSaplingDonationResult.id }
+                winstonLogger.info('Transaction SUCCESSFULL', { ...returnValue, ...createSaplingDonationResult} )
+                return returnValue
             }
         } catch (e) {
             console.log(e, 'wtf')
+            winstonLogger.info('Error in transaction', e,'\nNEW_LINE')
             return createError(e);
         }
     },
