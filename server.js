@@ -195,9 +195,11 @@ app.use(passport.initialize());
 // deserialize cookie from the browser
 app.use(passport.session());
 
+const HEROKU_FE = "https://moretrees-client.herokuapp.com"
+const LOCAL_FE = 'http://localhost:3000'
 app.use(
   cors({
-    origin: "http://localhost:3000", // allow to server to accept request from different origin
+    origin: LOCAL_FE, // allow to server to accept request from different origin
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true // allow session cookie from browser to pass through
   })

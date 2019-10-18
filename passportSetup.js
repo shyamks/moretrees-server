@@ -6,7 +6,6 @@ const { TWITTER, INSTA, getAccessToken } = require('./utils')
 // serialize the user.id to save in the cookie session
 // so the browser will remember the user when login
 passport.serializeUser((user, done) => {
-    console.log(user,'serialize')
     done(null, user._doc._id);
 });
 
@@ -48,8 +47,10 @@ passport.use(
                     done(null, { ...newUser, accessToken });
                 }
             }
-            let accessToken = getAccessToken(TWITTER, currentUser.twitterId)
-            done(null, { ...currentUser, accessToken });
+            else{
+                let accessToken = getAccessToken(TWITTER, currentUser.twitterId)
+                done(null, { ...currentUser, accessToken });
+            }
         }
     )
 );
