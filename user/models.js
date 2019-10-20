@@ -18,7 +18,9 @@ const userSchema = new Schema({
   volunteerOptions: [{type: Object}],
   availableWhen: String,
   availableWhat: String,
-  createdAt: Date
+  createdAt: Date,
+  resetPasswordToken: String,
+  resetPasswordExpiry: Date
 });
 
 const volunteerOptionsSchema = new Schema({

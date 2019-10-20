@@ -33,6 +33,29 @@ module.exports = {
             return createError(e);
         }
     },
+    resetPassword: async (_, args, context) => {
+        try {
+            let { password, confirmPassword, token } = args;
+            if (password === confirmPassword && password.length < 20) {
+                let user = await User.findOne({
+                    resetPasswordToken: token,
+                    resetPasswordExpiry: {
+                        $gt: Date.now()
+                    }
+                })
+                if (!user) return createError('Email does not exist.');
+                let finalInput = { password, resetPasswordToken: '', resetPasswordExpiry: '' }
+                const mergedUserForResponse = mergeJsons(user, finalInput)
+                console.log(mergedUserForResponse, 'finalInput')
+                let response = await mergedUserForResponse.save()
+                return response ? { status: 'success' } : createError('Error occured during update')
+            }
+            return createError('Password and ConfirmPassword not valid')
+        } catch (e) {
+            console.log(e, 'e')
+            return createError(e);
+        }
+    },
     updateUser: async (_, args, context) => {
         try {
             let { input } = args;

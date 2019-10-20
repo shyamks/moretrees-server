@@ -5,13 +5,14 @@ const { GraphQLJSONObject } = require('graphql-type-json')
 const { ApolloServer, gql } = require('apollo-server-express')
 const resolvers = require('./resolvers')
 
-const cookieSession = require("cookie-session")
-const cookieParser = require("cookie-parser")
-const keys = require("./keys")
-const cors = require("cors")
-const passport = require("passport")
-const passportSetup = require("./passportSetup")
-const authRoutes = require('./authRoutes')
+// const cookieSession = require("cookie-session")
+// const cookieParser = require("cookie-parser")
+// const keys = require("./keys")
+// const cors = require("cors")
+// const passport = require("passport")
+// const passportSetup = require("./passportSetup")
+// const authRoutes = require('./authRoutes')
+const { FE } = require('./utils')
 
 require('./config');
 
@@ -136,6 +137,8 @@ const typeDefs = gql`
     type Query {
         loginUser(password: String, email: String!): User
         getUser(email: String, twitterId: String, instaId: String): User
+        forgotPassword(email: String!): Status
+        confirmToken(token: String!): Status
         getAllUsers(email: String, twitterId: String, instaId: String): [User]
 
         getVolunteerOptions(status: String): [VolunteerOptionsOutput]!
@@ -148,6 +151,7 @@ const typeDefs = gql`
         updateUsers(input: [UserInput], email: String, twitterId: String, instaId: String): UpdateUsersResponse
 
         registerUser(username: String!, email: String!, password: String!, phone: String): User
+        resetPassword(password: String!, confirmPassword: String!, token: String!): Status
         makePayment(username: String!, email: String, twitterId: String, instaId: String, token: String!): Status
         makeDonation(input: DonationPaymentInput, email: String, twitterId: String, instaId: String): DonationPaymentOutput
         updateSaplings(input: [UpdateSaplingsInput]!, email: String, twitterId: String, instaId: String) : UpdateSaplingsResponse
@@ -179,57 +183,58 @@ const server = new ApolloServer({
 });
 const app = express();
 
-app.use(
-  cookieSession({
-    name: "session",
-    keys: [keys.COOKIE_KEY],
-    maxAge: 24 * 60 * 60 * 100
-  })
-);
 
-// parse cookies
-app.use(cookieParser());
+// twitter social login
+// app.use(
+//   cookieSession({
+//     name: "session",
+//     keys: [keys.COOKIE_KEY],
+//     maxAge: 24 * 60 * 60 * 100
+//   })
+// );
 
-// initalize passport
-app.use(passport.initialize());
-// deserialize cookie from the browser
-app.use(passport.session());
+// // parse cookies
+// app.use(cookieParser());
 
-const HEROKU_FE = "https://moretrees-client.herokuapp.com"
-const LOCAL_FE = 'http://localhost:3000'
-app.use(
-  cors({
-    origin: LOCAL_FE, // allow to server to accept request from different origin
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    credentials: true // allow session cookie from browser to pass through
-  })
-);
+// // initalize passport
+// app.use(passport.initialize());
+// // deserialize cookie from the browser
+// app.use(passport.session());
 
-// set up routes
-app.use("/auth", authRoutes);
 
-const authCheck = (req, res, next) => {
-  if (!req.user) {
-    res.status(401).json({
-      authenticated: false,
-      message: "user has not been authenticated"
-    });
-  } else {
-    next();
-  }
-};
+// app.use(
+//   cors({
+//     origin: FE , // allow to server to accept request from different origin
+//     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+//     credentials: true  // allow session cookie from browser to pass through
+//   })
+// );
 
-// if it's already login, send the profile response,
-// otherwise, send a 401 response that the user is not authenticated
-// authCheck before navigating to home page
-app.get("/", authCheck, (req, res) => {
-  res.status(200).json({
-    authenticated: true,
-    message: "user successfully authenticated",
-    user: req.user,
-    cookies: req.cookies
-  });
-});
+// // set up routes
+// app.use("/auth", authRoutes);
+
+// const authCheck = (req, res, next) => {
+//   if (!req.user) {
+//     res.status(401).json({
+//       authenticated: false,
+//       message: "user has not been authenticated"
+//     });
+//   } else {
+//     next();
+//   }
+// };
+
+// // if it's already login, send the profile response,
+// // otherwise, send a 401 response that the user is not authenticated
+// // authCheck before navigating to home page
+// app.get("/", authCheck, (req, res) => {
+//   res.status(200).json({
+//     authenticated: true,
+//     message: "user successfully authenticated",
+//     user: req.user,
+//     cookies: req.cookies
+//   });
+// });
 
 
 server.applyMiddleware({ app });

@@ -1,8 +1,6 @@
 const router = require('express').Router()
 const passport = require('passport')
-const CLIENT_HOME_PAGE_URL = 'https://moretrees-client.herokuapp.com'
-const CLIENT_HOME_PAGE_URL_LOCAL = 'http://localhost:3000'
-const { TWITTER, getAccessToken } = require('./utils')
+const { TWITTER, getAccessToken, FE } = require('./utils')
 
 // when login is successful, retrieve user info
 router.get('/login/success', (req, res) => {
@@ -38,7 +36,7 @@ router.get('/login/failed', (req, res) => {
 // When logout, redirect to client
 router.get('/logout', (req, res) => {
   req.logout();
-  res.redirect(CLIENT_HOME_PAGE_URL_LOCAL);
+  res.redirect(FE);
 });
 
 // auth with twitter
@@ -48,7 +46,7 @@ router.get('/twitter', passport.authenticate('twitter'));
 router.get(
   '/twitter/redirect',
   passport.authenticate('twitter', {
-    successRedirect: CLIENT_HOME_PAGE_URL_LOCAL,
+    successRedirect: FE,
     failureRedirect: '/auth/login/failed'
   })
 );
