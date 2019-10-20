@@ -8,9 +8,10 @@ const Razorpay = require('razorpay')
 const winstonLogger = require('../logger')
 
 const razorpayInstance = new Razorpay({
-    key_id: 'rzp_test_cxpMW5qj3FfIZD',
-    key_secret: 'B3AunkV7bOzjYdzIUHPFGtVc'
+    key_id: process.env.RAZORPAY_KEY,
+    key_secret: process.env.RAZORPAY_SECRET
 })
+
 module.exports = {
     registerUser: async (_, args) => {
         try {
