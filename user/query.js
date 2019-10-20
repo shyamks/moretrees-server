@@ -26,7 +26,7 @@ module.exports = {
                 const token = crypto.randomBytes(20).toString('hex')
                 let finalInput = {
                     resetPasswordToken: token,
-                    resetPasswordExpiry: Date.now() + 60 * 60 * 100
+                    resetPasswordExpiry: Date.now() + 15 * 60 * 1000 // expires in 15 mins
                 }
 
                 const mergedUserForResponse = mergeJsons(user, finalInput)
