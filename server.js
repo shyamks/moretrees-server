@@ -5,6 +5,8 @@ const { GraphQLJSONObject } = require('graphql-type-json')
 const { ApolloServer, gql } = require('apollo-server-express')
 const resolvers = require('./resolvers')
 
+require('dotenv').config({ path: `./.env.${process.env.NODE_ENV}` })
+
 // const cookieSession = require("cookie-session")
 // const cookieParser = require("cookie-parser")
 // const keys = require("./keys")
