@@ -5,7 +5,8 @@ const Razorpay = require('razorpay')
 const path = require('path')
 const dotenv = require('dotenv')
 
-dotenv.config({ path: path.join(__dirname, `./.env.${process.env.NODE_ENV}`) })
+const envFile = path.join(__dirname, `./.env.${process.env.NODE_ENV}`)
+dotenv.config({ path: envFile })
 
 const JWT_SECRET = process.env.JWT_SECRET
 const FE = process.env.FRONTEND_URL
