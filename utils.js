@@ -1,29 +1,39 @@
 const jwt = require('jsonwebtoken');
-// const fs = require('fs')
 const lodash = require('lodash')
 const nodemailer = require('nodemailer')
+const Razorpay = require('razorpay')
+const path = require('path')
+const dotenv = require('dotenv')
 
-const SECRET = "hello"
+dotenv.config({ path: path.join(__dirname, `./.env.${process.env.NODE_ENV}`) })
+
+const JWT_SECRET = process.env.JWT_SECRET
+const FE = process.env.FRONTEND_URL
+
+const MAILER_EMAIL = process.env.MAILER_EMAIL
+const MAILER_PASSWORD = process.env.MAILER_PASSWORD
+const MAILER_HOST = process.env.MAILER_HOST
+const MAILER_PORT = process.env.MAILER_PORT
 
 const EMAIL = 'email'
 const TWITTER = 'twitterId'
 const INSTA = 'instaId'
-const HEROKU_FE = "https://moretrees-client.herokuapp.com"
-const LOCAL_FE = 'http://localhost:3000'
 
-const FE = LOCAL_FE
+const RAZORPAY_INSTANCE = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY,
+    key_secret: process.env.RAZORPAY_SECRET
+})
 
 module.exports = {
     EMAIL,
     TWITTER,
     INSTA,
-    HEROKU_FE,
-    LOCAL_FE,
     FE,
+    RAZORPAY_INSTANCE,
     confirmValidityOfUser: async ({ email, twitterId, instaId }, context) => {
         const verifyToken = (token) => {
             return new Promise((resolve, reject) => {
-                jwt.verify(token, SECRET, function (err, decode) {
+                jwt.verify(token, JWT_SECRET, function (err, decode) {
                     console.log(`ERROR: ${err}, DECODE: ${JSON.stringify(decode)} VERIFY_TOKEN`)
                     if (err) {
                         reject(err)
@@ -49,7 +59,7 @@ module.exports = {
         
     },
     getAccessToken: (type, id) => {
-        return jwt.sign({ [type]: id }, SECRET);
+        return jwt.sign({ [type]: id }, JWT_SECRET);
     },
     validateRegisterUser: ({ username, password, email }) => {
         let usernameRegex = /^[a-zA-Z0-9]+$/
@@ -58,19 +68,14 @@ module.exports = {
     },
     sendMail: async (options) => {
         try {
-
-            const EMAIL = '1b9251a279ba95'
-            const PASSWORD = '861a10c4fa3a3f'
-            const HOST = 'smtp.mailtrap.io'
-            const PORT = '2525'
             const emailService = (mailOptions) => (
                 new Promise((resolve, reject) => {
                     const transporter = nodemailer.createTransport({
-                        host: HOST,
-                        port: PORT,
+                        host: MAILER_HOST,
+                        port: MAILER_PORT,
                         auth: {
-                            user: `${EMAIL}`,
-                            pass: `${PASSWORD}`
+                            user: `${MAILER_EMAIL}`,
+                            pass: `${MAILER_PASSWORD}`
                         },
                     })
                     transporter.sendMail(mailOptions, (err, response) => {
@@ -94,8 +99,6 @@ module.exports = {
         }
     },
     mergeJsons: (dbObject, inputObject) => {
-        // let dbJSONobject = JSON.parse(JSON.stringify(otherKeys));
-        // let inputJSONobject = JSON.parse(JSON.stringify(inputObject));
         for (key in inputObject){
             if(inputObject[key] != null)
                 dbObject[key] = inputObject[key]

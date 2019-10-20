@@ -1,20 +1,8 @@
 const express = require('express')
 const lodash = require('lodash')
-
 const { GraphQLJSONObject } = require('graphql-type-json')
 const { ApolloServer, gql } = require('apollo-server-express')
 const resolvers = require('./resolvers')
-
-require('dotenv').config({ path: `./.env.${process.env.NODE_ENV}` })
-
-// const cookieSession = require("cookie-session")
-// const cookieParser = require("cookie-parser")
-// const keys = require("./keys")
-// const cors = require("cors")
-// const passport = require("passport")
-// const passportSetup = require("./passportSetup")
-// const authRoutes = require('./authRoutes')
-const { FE } = require('./utils')
 
 require('./config');
 
@@ -58,16 +46,12 @@ const typeDefs = gql`
         accessToken: String
         ${userInput}
         type: String,
-        volunteerOptions: [VolunteerOptionsOutput!]
         error: String
         message: String
     }
     input UserInput {
         ${userInput}
         volunteerOptions: [VolunteerOptions]
-    }
-    type VolunteerOptionsOutput {
-      ${volunteerOptions}
     }
     input VolunteerOptions {
       ${volunteerOptions}
@@ -143,7 +127,6 @@ const typeDefs = gql`
         confirmToken(token: String!): Status
         getAllUsers(email: String, twitterId: String, instaId: String): [User]
 
-        getVolunteerOptions(status: String): [VolunteerOptionsOutput]!
         getSaplingOptions(status: String): [SaplingOptionsOutput]!
         myDonations(email: String, twitterId: String, instaId: String): [MyDonationsOut]
         getAllUserDonations(email: String, twitterId: String, instaId: String): [MyDonationsOut]
@@ -154,7 +137,6 @@ const typeDefs = gql`
 
         registerUser(username: String!, email: String!, password: String!, phone: String): User
         resetPassword(password: String!, confirmPassword: String!, token: String!): Status
-        makePayment(username: String!, email: String, twitterId: String, instaId: String, token: String!): Status
         makeDonation(input: DonationPaymentInput, email: String, twitterId: String, instaId: String): DonationPaymentOutput
         updateSaplings(input: [UpdateSaplingsInput]!, email: String, twitterId: String, instaId: String) : UpdateSaplingsResponse
     }
@@ -170,74 +152,13 @@ const server = new ApolloServer({
     return { headers }
   },
   formatError: error => {
-    // logger.warn(error);
     return error;
   },
   formatResponse: (response, query) => {
-    // logger.info('GraphQL query and variables', {
-    //   query: query.queryString,
-    //   vars: query.variables,
-    // });
-    // const omitTypename = (key, value) => (key === '__typename' ? undefined : value);
-    // let finalResponse = JSON.parse(JSON.stringify(response), omitTypename);
     return response;
   },
 });
 const app = express();
-
-
-// twitter social login
-// app.use(
-//   cookieSession({
-//     name: "session",
-//     keys: [keys.COOKIE_KEY],
-//     maxAge: 24 * 60 * 60 * 100
-//   })
-// );
-
-// // parse cookies
-// app.use(cookieParser());
-
-// // initalize passport
-// app.use(passport.initialize());
-// // deserialize cookie from the browser
-// app.use(passport.session());
-
-
-// app.use(
-//   cors({
-//     origin: FE , // allow to server to accept request from different origin
-//     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-//     credentials: true  // allow session cookie from browser to pass through
-//   })
-// );
-
-// // set up routes
-// app.use("/auth", authRoutes);
-
-// const authCheck = (req, res, next) => {
-//   if (!req.user) {
-//     res.status(401).json({
-//       authenticated: false,
-//       message: "user has not been authenticated"
-//     });
-//   } else {
-//     next();
-//   }
-// };
-
-// // if it's already login, send the profile response,
-// // otherwise, send a 401 response that the user is not authenticated
-// // authCheck before navigating to home page
-// app.get("/", authCheck, (req, res) => {
-//   res.status(200).json({
-//     authenticated: true,
-//     message: "user successfully authenticated",
-//     user: req.user,
-//     cookies: req.cookies
-//   });
-// });
-
 
 server.applyMiddleware({ app });
 

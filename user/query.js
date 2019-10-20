@@ -1,7 +1,8 @@
-let { getAccessToken, sendMail, confirmValidityOfUser, createError, mergeJsons, getEmailFromContext, EMAIL, TWITTER, FE } = require('../utils');
+let { EMAIL, FE, getAccessToken, sendMail, confirmValidityOfUser, createError, mergeJsons, prepareObjectForLog } = require('../utils');
 let { User, VolunteerOptions, SaplingOptions, UserSaplingDonation } = require('./models')
 
 const crypto = require('crypto')
+const winstonLogger = require('../logger')
 
 module.exports = {
     loginUser: async (_, args) => {
@@ -16,6 +17,7 @@ module.exports = {
                 return createError('User with this email does not exist or the password is incorrect');
             }
         } catch (e) {
+            winstonLogger.info(`Error in query:loginUser =>  ${prepareObjectForLog(e)} `)
             return createError(e);
         }
     },
@@ -30,7 +32,6 @@ module.exports = {
                 }
 
                 const mergedUserForResponse = mergeJsons(user, finalInput)
-                // console.log(mergedUserForResponse, 'finalInput')
                 let response = await mergedUserForResponse.save()
 
                 const resetLink = `${FE}/reset?token=${token}`
@@ -40,7 +41,7 @@ module.exports = {
                     from: `Shyam <${MAIL_EMAIL}>`,
                     to: user.email,
                     subject: 'Link to reset password',
-                    text: `Blah Blah Blah Blah Blah Blah\n\n ${resetLink}\n\n Blah Blah Blah Blah Blah Blah`
+                    text: `Here's the link to reset your account\n\n ${resetLink}\n\n This link expires in 15 minutes.`
                 }
                 console.log(response, 'sending email')
 
@@ -54,13 +55,13 @@ module.exports = {
                 return createError('User with this email does not exist');
             }
         } catch (e) {
+            winstonLogger.info(`Error in query:forgotPassword =>  ${prepareObjectForLog(e)} `)
             return createError(e);
         }
     },
     confirmToken: async (_, args) => {
         try {
             let { token } = args
-            console.log(token, 'confirmToken')
 
             let user = await User.findOne({
                 resetPasswordToken: token,
@@ -70,6 +71,7 @@ module.exports = {
             })
             return user ? { email: user.email } : createError('No email matches with token')
         } catch (e) {
+            winstonLogger.info(`Error in query:confirmToken =>  ${prepareObjectForLog(e)} `)
             return createError(e)
         }
     },
@@ -80,13 +82,12 @@ module.exports = {
             if (isValid) {
                 const user = await User.findOne(decodedContext);
                 return user
-                // let userVolOptions = await VolunteerOptions.find({ status })
-                // return userVolOptions
             }
             else {
                 return createError('User with this email does not exist or the password is incorrect')
             }
         } catch (e) {
+            winstonLogger.info(`Error in query:getUser =>  ${prepareObjectForLog(e)} `)
             return createError(e)
         }
     },
@@ -97,29 +98,25 @@ module.exports = {
             if (isValid) {
                 let users = await User.find({});
                 return users
-                // let userVolOptions = await VolunteerOptions.find({ status })
-                // return userVolOptions
             }
             else {
                 return createError('User with this email does not exist or the password is incorrect')
             }
         } catch (e) {
-            return createError(e)
-        }
-    },
-    getVolunteerOptions: async (_, args, context) => {
-        try {
-            let { status } = args
-            let userVolOptions = await VolunteerOptions.find({ status })
-            return userVolOptions
-        } catch (e) {
+            winstonLogger.info(`Error in query:getAllUsers =>  ${prepareObjectForLog(e)} `)
             return createError(e)
         }
     },
     getSaplingOptions: async (_, args, context) => {
-        let { status } = args
-        let saplingOptions = await SaplingOptions.find(status ? { status }: { })
-        return saplingOptions
+        try {
+            let { status } = args
+            let saplingOptions = await SaplingOptions.find(status ? { status } : {})
+            return saplingOptions
+        } catch (e) {
+            winstonLogger.info(`Error in query:getSaplingOptions =>  ${prepareObjectForLog(e)} `)
+            return createError(e)
+        }
+
     },
     myDonations: async (_, args, context) => {
         try {
@@ -133,6 +130,7 @@ module.exports = {
                 return createError('User with this email does not exist or the password is incorrect')
             }
         } catch (e) {
+            winstonLogger.info(`Error in query:myDonations =>  ${prepareObjectForLog(e)} `)
             return createError(e)
         }
     },
@@ -148,6 +146,7 @@ module.exports = {
                 return createError('User with this email does not exist or the password is incorrect')
             }
         } catch (e) {
+            winstonLogger.info(`Error in query:getAllUserDonations =>  ${prepareObjectForLog(e)} `)
             return createError(e)
         }
     }

@@ -1,6 +1,6 @@
-const { registerUser, resetPassword, updateUser, updateUsers, makePayment, makeDonation, updateSaplings } = require('./user/mutations');
+const { registerUser, resetPassword, updateUser, updateUsers, makeDonation, updateSaplings } = require('./user/mutations');
 
-const { loginUser, getUser, forgotPassword, confirmToken, getVolunteerOptions, getSaplingOptions, myDonations, getAllUserDonations, getAllUsers} = require('./user/query.js');
+const { loginUser, getUser, forgotPassword, confirmToken, getSaplingOptions, myDonations, getAllUserDonations, getAllUsers} = require('./user/query.js');
 
 module.exports = {
     Query: {
@@ -9,7 +9,6 @@ module.exports = {
         forgotPassword,
         confirmToken,
         getAllUsers,
-        getVolunteerOptions,
         getSaplingOptions,
         myDonations,
         getAllUserDonations
@@ -19,7 +18,6 @@ module.exports = {
         resetPassword,
         updateUser,
         updateUsers,
-        makePayment,
         makeDonation,
         updateSaplings
     }

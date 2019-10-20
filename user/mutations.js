@@ -1,16 +1,9 @@
-const lodash = require('lodash')
 const mongoose = require('mongoose');
 
-let { EMAIL, confirmValidityOfUser, getAccessToken, createError, createSuccess, mergeJsons, getEmailFromContext, validateRegisterUser, prepareObjectForLog } = require('../utils');
+let { EMAIL, RAZORPAY_INSTANCE, confirmValidityOfUser, getAccessToken, createError, mergeJsons, validateRegisterUser, prepareObjectForLog } = require('../utils');
 const { User, UserSaplingDonation, SaplingOptions } = require('./models');
-const Razorpay = require('razorpay')
 
 const winstonLogger = require('../logger')
-
-const razorpayInstance = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY,
-    key_secret: process.env.RAZORPAY_SECRET
-})
 
 module.exports = {
     registerUser: async (_, args) => {
@@ -31,6 +24,7 @@ module.exports = {
                 return createError('Email already exists. Please try another email');
             }
         } catch (e) {
+            winstonLogger.info(`Error in mutations:registerUser =>  ${prepareObjectForLog(e)} `)
             return createError(e);
         }
     },
@@ -53,7 +47,7 @@ module.exports = {
             }
             return createError('Password and ConfirmPassword not valid')
         } catch (e) {
-            console.log(e, 'e')
+            winstonLogger.info(`Error in mutations:resetPassword =>  ${prepareObjectForLog(e)} `)
             return createError(e);
         }
     },
@@ -79,7 +73,7 @@ module.exports = {
             }
             return createError('Email not valid')
         } catch (e) {
-            console.log(e, 'e')
+            winstonLogger.info(`Error in mutations:updateUser =>  ${prepareObjectForLog(e)} `)
             return createError(e);
         }
     },
@@ -112,32 +106,7 @@ module.exports = {
             }
             return createError('Email not valid')
         } catch (e) {
-            console.log(e, 'e')
-            return createError(e);
-        }
-    },
-    makePayment: async (_, args, context) => {
-        try {
-
-            let { email, twitterId, instaId, token, amount } = args
-            let { isValid, decodedContext } = await confirmValidityOfUser({ email, twitterId, instaId }, context)
-            if (isValid) {
-
-                let finalToken = token
-                let finalAmount = amount * 100;
-                // // console.log(finalToken, 'tokeeeee')
-                // let charge = await stripe.charges.create({
-                //     amount: finalAmount,
-                //     currency: 'inr',
-                //     description: 'Example charge',
-                //     source: finalToken,
-                // });
-
-                // console.log(JSON.stringify(charge), 'yeyeyey')
-                return { status: 'success' }
-            }
-        } catch (e) {
-            console.log(e, 'wtf')
+            winstonLogger.info(`Error in mutations:updateUsers =>  ${prepareObjectForLog(e)} `)
             return createError(e);
         }
     },
@@ -145,7 +114,6 @@ module.exports = {
         try {
 
             let { input } = args
-            // console.log('inupt', args)
             let { email, twitterId, instaId, token, amount, items } = input
             let { isValid, decodedContext } = await confirmValidityOfUser({ email, twitterId, instaId }, context)
             if (isValid) {
@@ -159,7 +127,6 @@ module.exports = {
                 let saplingOptions = await SaplingOptions.find({ status: 'ACTIVE' })
                 let saplingItems = items;
 
-                // console.log(saplingItems,saplingOptions,'saaaaaa')
                 let saplingOptionsMap = saplingOptions.reduce((map, object) => {
                     map[object.id] = object
                     return map
@@ -172,7 +139,6 @@ module.exports = {
                     }
                     return false
                 }).reduce((finalValue, booleanValue) => booleanValue && finalValue, true)
-                // console.log(canTransactionHappen, 'tokeeeee')
                 if (!canTransactionHappen) {
                     winstonLogger.info(`Error in transaction => ${prepareObjectForLog({ error: 'Not enough saplings left to make a donation' })}  `)
                     return createError('Not enough saplings left to make a donation')
@@ -206,7 +172,7 @@ module.exports = {
                     }
                     let charge, bulkWriteResult
                     try {
-                        charge = await razorpayInstance.payments.capture(finalToken, finalAmount, 'INR')
+                        charge = await RAZORPAY_INSTANCE.payments.capture(finalToken, finalAmount, 'INR')
                     }
                     catch (e) {
                         console.log(e, 'charges problem')
@@ -227,7 +193,6 @@ module.exports = {
                 }
             }
         } catch (e) {
-            console.log(e, 'wtf')
             winstonLogger.info(`Error in transaction =>  ${prepareObjectForLog(e)} `)
             return createError(e);
         }
@@ -267,7 +232,7 @@ module.exports = {
             }
             return createError('Email not valid')
         } catch (e) {
-            console.log(e,'e')
+            winstonLogger.info(`Error in mutations:updateSaplings =>  ${prepareObjectForLog(e)} `)
             return createError(e);
         }
     },
