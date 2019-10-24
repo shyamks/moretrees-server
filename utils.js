@@ -8,6 +8,8 @@ const dotenv = require('dotenv')
 const envFile = path.join(__dirname, `./.env.${process.env.NODE_ENV}`)
 dotenv.config({ path: envFile })
 
+console.log(process.env,'env file')
+
 const JWT_SECRET = process.env.JWT_SECRET
 const FE = process.env.FRONTEND_URL
 
