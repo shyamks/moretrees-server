@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 let { EMAIL, RAZORPAY_INSTANCE, confirmValidityOfUser, getAccessToken, createError, mergeJsons, validateRegisterUser, prepareObjectForLog } = require('../utils');
-const { User, UserSaplingDonation, SaplingOptions } = require('./models');
+const { User, ProjectDonations, Projects } = require('./models');
 
 const winstonLogger = require('../logger')
 
@@ -124,17 +124,17 @@ module.exports = {
 
                 if (finalAmount < 50 * 100)
                     return createError('Final amount is below Rs 50')
-                let saplingOptions = await SaplingOptions.find({ status: 'ACTIVE' })
-                let saplingItems = items;
+                let projects = await Projects.find({ status: 'ACTIVE' })
+                let projectItems = items;
 
-                let saplingOptionsMap = saplingOptions.reduce((map, object) => {
+                let projectsMap = projects.reduce((map, object) => {
                     map[object.id] = object
                     return map
                 }, {})
 
-                let canTransactionHappen = saplingItems.map(saplingItem => {
-                    let saplingOptionItem = saplingOptionsMap[saplingItem.id]
-                    if (saplingOptionItem.remaining >= saplingItem.count) {
+                let canTransactionHappen = projectItems.map(projectItem => {
+                    let projectOptionItem = projectsMap[projectItem.id]
+                    if (projectOptionItem.remaining >= projectItem.count) {
                         return true
                     }
                     return false
@@ -148,28 +148,30 @@ module.exports = {
                     return createError('Token not present in the input');
                 }
                 else {
-                    const bulkWriteSaplingOptions = async (saplingItems, saplingOptionsMap) => {
-                        let updatedSaplingItemsOperations = saplingItems.map(saplingItem => {
-                            let saplingOptionItem = saplingOptionsMap[saplingItem.id]
-                            if (saplingOptionItem) {
-                                saplingOptionItem.remaining -= saplingItem.count
+                    const bulkWriteProjects = async (projectItems, projectsMap) => {
+                        let updatedProjectItemsOperations = projectItems.map(projectItem => {
+                            let projectOptionItem = projectsMap[projectItem.id]
+                            if (projectOptionItem) {
+                                projectOptionItem.remaining -= projectItem.count
+                                // updating remaining based on title 
                                 return {
                                     updateOne: {
-                                        filter: { title: saplingOptionItem.title },
-                                        update: { $set: { remaining: saplingOptionItem.remaining } }
+                                        filter: { title: projectOptionItem.title }, 
+                                        update: { $set: { remaining: projectOptionItem.remaining } }
                                     }
                                 }
                             }
                             return null
                         }).filter(item => item)
                         let operationResult
-                        if (updatedSaplingItemsOperations.length) {
-                            // console.log(JSON.stringify(updatedSaplingItemsOperations),'operation before')
-                            operationResult = await SaplingOptions.bulkWrite(updatedSaplingItemsOperations)
-                            // console.log(operationResult, updatedSaplingItemsOperations,'operation bulk')
+                        if (updatedProjectItemsOperations.length) {
+                            // console.log(JSON.stringify(updatedProjectItemsOperations),'operation before')
+                            operationResult = await Projects.bulkWrite(updatedProjectItemsOperations)
+                            // console.log(operationResult, updatedProjectItemsOperations,'operation bulk')
                         }
                         return operationResult;
                     }
+                    Project
                     let charge, bulkWriteResult
                     try {
                         charge = await RAZORPAY_INSTANCE.payments.capture(finalToken, finalAmount, 'INR')
@@ -180,11 +182,11 @@ module.exports = {
                         return createError('Problem during transaction.')
                     }
 
-                    if (saplingItems.length) {
-                        bulkWriteResult = await bulkWriteSaplingOptions(saplingItems, saplingOptionsMap)
+                    if (projectItems.length) {
+                        bulkWriteResult = await bulkWriteProjects(projectItems, projectsMap)
                     }
 
-                    let createSaplingDonationResult = await UserSaplingDonation.create({ email, token, amount, items, paymentDetails: charge })
+                    let createSaplingDonationResult = await ProjectDonations.create({ email, token, amount, items, paymentDetails: charge })
 
                     console.log(createSaplingDonationResult, 'yeyeyey')
                     let returnValue = { status: 'success', referenceId: createSaplingDonationResult.id }
@@ -207,15 +209,15 @@ module.exports = {
                     for (let i = 0; i < input.length; i++) {
                         let { id, status, type, title, subtitle, cost, content, remaining, createNewRow, removeRow } = input[i]
                         if (createNewRow && id) {
-                            let createResponse = await SaplingOptions.create({ status, type, title, subtitle, cost, content, remaining })
+                            let createResponse = await Projects.create({ status, type, title, subtitle, cost, content, remaining })
                             if (!createResponse) createError('Error occured during creating')
                         }
                         else if (removeRow && id) {
-                            let deleteResponse = await SaplingOptions.deleteOne({ _id: new mongoose.Types.ObjectId(id) })
+                            let deleteResponse = await Projects.deleteOne({ _id: new mongoose.Types.ObjectId(id) })
                             if (!deleteResponse) createError('Error occured during remove')
                         }
                         else {
-                            const sapling = await SaplingOptions.findOne({ _id: new mongoose.Types.ObjectId(id) });
+                            const sapling = await Projects.findOne({ _id: new mongoose.Types.ObjectId(id) });
                             if (!sapling) return createError('Sapling does not exist');
                             let finalInput = { status, type, title, subtitle, cost, content, remaining }
                             console.log(finalInput, 'finalInput')
@@ -224,7 +226,7 @@ module.exports = {
                             if (!response) createError('Error occured during update')
                         }
                     }
-                    const saplings = await SaplingOptions.find({ })
+                    const saplings = await Projects.find({ })
                     return { response: saplings, status: 'success' }
                 }
                 return createError('User not admin. Sneaky.')

@@ -1,5 +1,5 @@
 let { EMAIL, FE, getAccessToken, sendMail, confirmValidityOfUser, createError, mergeJsons, prepareObjectForLog } = require('../utils');
-let { User, VolunteerOptions, SaplingOptions, UserSaplingDonation } = require('./models')
+let { User, Projects, ProjectDonations } = require('./models')
 
 const crypto = require('crypto')
 const winstonLogger = require('../logger')
@@ -107,13 +107,13 @@ module.exports = {
             return createError(e)
         }
     },
-    getSaplingOptions: async (_, args, context) => {
+    getProjects: async (_, args, context) => {
         try {
             let { status } = args
-            let saplingOptions = await SaplingOptions.find(status ? { status } : {})
-            return saplingOptions
+            let projects = await Projects.find(status ? { status } : {})
+            return projects
         } catch (e) {
-            winstonLogger.info(`Error in query:getSaplingOptions =>  ${prepareObjectForLog(e)} `)
+            winstonLogger.info(`Error in query:getProjects =>  ${prepareObjectForLog(e)} `)
             return createError(e)
         }
 
@@ -123,7 +123,7 @@ module.exports = {
             let { email, twitterId, instaId } = args
             let { isValid, decodedContext } = await confirmValidityOfUser({ email, twitterId, instaId }, context)
             if (isValid) {
-                let userDonations = await UserSaplingDonation.find(decodedContext);
+                let userDonations = await ProjectDonations.find(decodedContext);
                 return userDonations
             }
             else {
@@ -139,7 +139,7 @@ module.exports = {
             let { email, twitterId, instaId } = args
             let { isValid, decodedContext } = await confirmValidityOfUser({ email, twitterId, instaId }, context)
             if (isValid) {
-                let userDonations = await UserSaplingDonation.find({});
+                let userDonations = await ProjectDonations.find({});
                 return userDonations
             }
             else {

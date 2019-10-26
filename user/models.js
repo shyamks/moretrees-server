@@ -1,4 +1,7 @@
 const mongoose = require('mongoose');
+const AutoIncrement = require('mongoose-sequence')(mongoose);
+let ObjectId = mongoose.Schema.Types.ObjectId;
+
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
@@ -23,12 +26,7 @@ const userSchema = new Schema({
   resetPasswordExpiry: Date
 });
 
-const volunteerOptionsSchema = new Schema({
-  optionText: String,
-  status: String
-});
-
-const saplingOptionsSchema = new Schema({
+const projectsSchema = new Schema({
   status: String,
   type: String,
   title: String,
@@ -38,7 +36,23 @@ const saplingOptionsSchema = new Schema({
   remaining: String,
 })
 
-const userSaplingDonationSchema = new Schema({
+const userDonationsSchema = new Schema({
+  userId: ObjectId,
+  treeId: Number,
+  status: String,
+  type: String,
+  title: String,
+  subtitle: String,
+  cost: String,
+  content: String,
+  photoTimeline: [{
+    text: String,
+    photoUrl: String
+  }]
+})
+userDonationsSchema.plugin(AutoIncrement, { inc_field: 'treeId' })
+
+const projectDonationsSchema = new Schema({
    email: String,
    twitterId: String,
    instaId: String,
@@ -50,13 +64,14 @@ const userSaplingDonationSchema = new Schema({
 })
 
 const User = mongoose.model('user', userSchema); 
-const VolunteerOptions = mongoose.model('volunteerOptions', volunteerOptionsSchema);
-const SaplingOptions = mongoose.model('saplingOptions', saplingOptionsSchema);
-const UserSaplingDonation = mongoose.model('userSaplingDonation', userSaplingDonationSchema);
+const UserDonations = mongoose.model('userdonations', userDonationsSchema);
+
+const Projects = mongoose.model('projects', projectsSchema);
+const ProjectDonations = mongoose.model('projectdonations', projectDonationsSchema);
 
 module.exports = {
   User,
-  VolunteerOptions,
-  SaplingOptions,
-  UserSaplingDonation
+  UserDonations,
+  Projects,
+  ProjectDonations
 };
