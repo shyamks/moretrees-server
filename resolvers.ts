@@ -1,15 +1,15 @@
 const { registerUser, resetPassword, updateUser, updateUsers, makeDonation, updateSaplings } = require('./user/mutations');
 
-const { loginUser, getUser, forgotPassword, confirmToken, getSaplingOptions, myDonations, getAllUserDonations, getAllUsers} = require('./user/query.js');
+const { loginUser, getUser, forgotPassword, confirmToken, getProjects, myDonations, getAllUserDonations, getAllUsers} = require('./user/query');
 
-module.exports = {
+export = {
     Query: {
         loginUser,
         getUser,
         forgotPassword,
         confirmToken,
         getAllUsers,
-        getSaplingOptions,
+        getProjects,
         myDonations,
         getAllUserDonations
     },

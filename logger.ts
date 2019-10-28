@@ -1,14 +1,15 @@
-const { createLogger, format, transports } = require('winston');
-const path = require('path')
-const fs = require('fs')
-require('winston-daily-rotate-file');
+import { createLogger, format, transports, Logger, LoggerOptions } from 'winston'
+import path from 'path'
+import fs from 'fs'
+import { Format } from 'logform';
+import DailyRotateFile from 'winston-daily-rotate-file'
 
 const logDir = path.join(__dirname, 'logs');
 fs.existsSync(logDir) || fs.mkdirSync(logDir);
 
 let transportsArray = process.env.NODE_ENV === 'production' ?
     [
-        new (transports.DailyRotateFile)({
+        new DailyRotateFile({
             filename: 'logs/moretrees-%DATE%.log',
             datePattern: 'YYYY-MM-DD',
             zippedArchive: true,
@@ -22,7 +23,7 @@ let transportsArray = process.env.NODE_ENV === 'production' ?
         })
     ]
 
-const winstonLogger = new createLogger({
+let options: LoggerOptions = {
     format: format.combine(
         format.colorize(),
         format.timestamp({
@@ -33,6 +34,9 @@ const winstonLogger = new createLogger({
         })
     ),
     transports: transportsArray
-})
+}
 
-module.exports = winstonLogger
+
+const winstonLogger: Logger = createLogger(options)
+
+export = winstonLogger

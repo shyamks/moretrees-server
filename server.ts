@@ -1,8 +1,12 @@
-const express = require('express')
-const lodash = require('lodash')
-const { GraphQLJSONObject } = require('graphql-type-json')
-const { ApolloServer, gql } = require('apollo-server-express')
-const resolvers = require('./resolvers')
+import express from 'express'
+import lodash from 'lodash'
+import path from 'path'
+import https from 'https'
+import fs from 'fs'
+import { GraphQLJSONObject } from 'graphql-type-json'
+import { ApolloServer, gql } from 'apollo-server-express'
+import resolvers from './resolvers'
+import { ScalarDate } from './scalars'
 
 require('./config');
 
@@ -41,6 +45,7 @@ const saplingOptions = `
 const typeDefs = gql`
  
     scalar JSON
+    scalar Date
     type User {
         id: ID!
         accessToken: String
@@ -94,13 +99,24 @@ const typeDefs = gql`
       referenceId: String
     }
 
+    type PhotoTimeline{
+      order: Int,
+      text: String,
+      photoUrl: String
+    }
     type MyDonationsOut {
-      id: String
-      email: String
-      amount: Int
-      items: [JSON]
-      token: String
-      createdAt: String
+      email: String,
+      instaProfile: String,
+      twitterProfile: String,
+      type: String,
+      title: String,
+      subtitle: String,
+      cost: String,
+      content: String,
+      treeId: Int,
+      status: String,
+      createdAt: Date,
+      photoTimeline: [PhotoTimeline]
     }
     
     type Status {
@@ -127,7 +143,7 @@ const typeDefs = gql`
         confirmToken(token: String!): Status
         getAllUsers(email: String, twitterId: String, instaId: String): [User]
 
-        getSaplingOptions(status: String): [SaplingOptionsOutput]!
+        getProjects(status: String): [SaplingOptionsOutput]!
         myDonations(email: String, twitterId: String, instaId: String): [MyDonationsOut]
         getAllUserDonations(email: String, twitterId: String, instaId: String): [MyDonationsOut]
     }
@@ -144,24 +160,25 @@ const typeDefs = gql`
 
 const server = new ApolloServer({
   typeDefs,
-  resolvers: lodash.assign({ JSON: GraphQLJSONObject }, resolvers),
+  resolvers: lodash.assign({ JSON: GraphQLJSONObject, Date: ScalarDate }, resolvers),
   introspection: true,
   playground: true,
-  context: ({ req }) => {
+  context: ({ req }: any) => {
     let headers = req.headers
     return { headers }
   },
-  formatError: error => {
+  formatError: (error: any) => {
     return error;
   },
-  formatResponse: (response, query) => {
+  formatResponse: (response: any, query: any) => {
     return response;
   },
 });
-const app = express();
+const app: express.Application = express()
 
 server.applyMiddleware({ app });
 
 app.listen({ port: 5000 }, () =>
   console.log(`🚀 Server ready at http://localhost:5000${server.graphqlPath}`)
+
 );
