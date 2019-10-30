@@ -2,8 +2,8 @@ import mongoose from 'mongoose'
 import lodash from 'lodash'
 import AWS from 'aws-sdk'
 
-import { EMAIL, RAZORPAY_INSTANCE, confirmValidityOfUser, getAccessToken, createError, mergeJsons, getNextId, validateRegisterUser, prepareObjectForLog, getMapFromArray } from '../utils'
-import { ProjectDonationsPaymentInfo, Projects, ProjectInterface, DonationItemInterface, UserDonations, UserDonationInterface, UserInterface, Users, COLLECTION_NAME, ProjectDonationsPaymentInfoInterface } from './models'
+import { EMAIL, RAZORPAY_INSTANCE, confirmValidityOfUser, getAccessToken, createError, mergeJsons, getNextId, validateRegisterUser, prepareObjectForLog, getMapFromArray, uploadImageToImgur, prepareDonationResponseItem } from '../utils'
+import { ProjectDonationsPaymentInfo, Projects, ProjectInterface, DonationItemInterface, UserDonations, UserDonationInterface, UserInterface, Users, COLLECTION_NAME, ProjectDonationsPaymentInfoInterface, PhotoTimelineInterface } from './models'
 
 import winstonLogger from '../logger'
 
@@ -228,6 +228,58 @@ export const makeDonation = async (_: any, args: any, context: any) => {
     } catch (e) {
         console.log(`Error in transaction =>  ${prepareObjectForLog(e)} `)
         winstonLogger.info(`Error in transaction =>  ${prepareObjectForLog(e)} `)
+        return createError(e);
+    }
+}
+
+export const addPhotoToTimeline = async (_: any, args: any, context: any) => {
+    try {
+        let { input, email: emailFromRequest, twitterId, instaId } = args;
+        let { isValid, decodedContext } = await confirmValidityOfUser({ email: emailFromRequest, twitterId, instaId }, context)
+        if (!isValid)
+            return createError('User not valid')
+        const user: UserInterface | null = await Users.findOne(decodedContext)
+        const allProjects: ProjectInterface[] = await Projects.find({})
+        const allProjectsMap: Map<String, ProjectInterface> = getMapFromArray(allProjects, '_id')
+        if (!user)
+            return createError('User does not exit.')
+        if (user.type != 'admin')
+            return createError('User not admin. Sneaky.')
+        let { treeId, isNewPhoto, text, link, order } = input
+        const userDonation: UserDonationInterface | null = await UserDonations.findOne({ treeId })
+        if (!userDonation)
+            return createError('Tree does not exist.')
+        const userFromDonation: UserInterface | null = await Users.findOne({ _id: userDonation.userId })
+        if (!userFromDonation)
+            return createError('User from donation does not exist.')
+        let changedPhotoTimeline: PhotoTimelineInterface[] | undefined = userDonation.photoTimeline
+        if (isNewPhoto) {
+            if (changedPhotoTimeline) { //another photo to existing timeline
+                changedPhotoTimeline.push({ text, photoUrl: link, order: changedPhotoTimeline.length + 1 })
+            }
+            else { // first photo to timeline
+                changedPhotoTimeline = [{ text, photoUrl: link, order: 1 }]
+            }
+        }
+        else {
+            if (changedPhotoTimeline) {
+                changedPhotoTimeline = changedPhotoTimeline.map((item: PhotoTimelineInterface) => {
+                    if (item.order === order) {
+                        item.photoUrl = link
+                        item.text = text
+                    }
+                    return item
+                })
+            }
+        }
+        userDonation.photoTimeline = changedPhotoTimeline
+        let response = await userDonation.save()
+        return response ? prepareDonationResponseItem(userDonation.projectId, userFromDonation, allProjectsMap, userDonation) : { status: 'error' }
+
+    } catch(e) {
+        console.log(e)
+        winstonLogger.info(`Error in mutations:addPhotoToTimeline =>  ${prepareObjectForLog(e)} `)
+        return {status: 'error'}
         return createError(e);
     }
 }

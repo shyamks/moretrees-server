@@ -76,11 +76,13 @@ export interface UserDonationInterface extends mongoose.Document{
   status: string,
   projectId: string,
   createdAt: Date,
-  photoTimeline?: [{
-    order: number,
-    text: string,
-    photoUrl: string
-  }]
+  photoTimeline?: PhotoTimelineInterface[]
+}
+
+export interface PhotoTimelineInterface {
+  order: number,
+  text: string,
+  photoUrl: string
 }
 
 const projectsSchema = new Schema({

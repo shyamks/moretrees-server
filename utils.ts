@@ -4,7 +4,7 @@ import nodemailer from 'nodemailer'
 import Razorpay from 'razorpay'
 import path from 'path'
 import dotenv from 'dotenv'
-import { CounterInterface, Counters } from './user/models'
+import { CounterInterface, Counters, UserInterface, ProjectInterface, UserDonationInterface } from './user/models'
 
 const envFile = path.join(__dirname, `./.env.${process.env.NODE_ENV}`)
 dotenv.config({ path: envFile })
@@ -110,6 +110,30 @@ export const sendMail = async (options: any) => {
     catch (e) {
         console.log(JSON.stringify(e), 'sendMail error')
         return { error: e, status: 'error' }
+    }
+}
+
+export const prepareDonationResponseItem = (projectId: string, user: UserInterface, allProjectsMap : Map<String, ProjectInterface>, userDonation: UserDonationInterface) => {
+    let project: ProjectInterface | undefined = allProjectsMap.get(String(projectId))
+    if (!project || !user) {
+        throw new Error('Project/User does not exist')
+    }
+    let { email, instaProfile, twitterProfile } = user
+    let { type, title, subtitle, cost, content } = project
+    let { treeId, status, createdAt, photoTimeline } = userDonation
+    return {
+        email,
+        instaProfile,
+        twitterProfile,
+        type,
+        title,
+        subtitle,
+        cost,
+        content,
+        treeId,
+        status,
+        createdAt,
+        photoTimeline
     }
 }
 

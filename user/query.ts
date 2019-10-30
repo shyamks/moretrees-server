@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import crypto from 'crypto'
 
-import { EMAIL, FE, getAccessToken, sendMail, confirmValidityOfUser, createError, mergeJsons, prepareObjectForLog, getMapFromArray } from '../utils'
+import { EMAIL, FE, getAccessToken, sendMail, confirmValidityOfUser, createError, mergeJsons, prepareObjectForLog, getMapFromArray, prepareDonationResponseItem } from '../utils'
 import { Users, Projects, ProjectDonationsPaymentInfo, UserInterface, UserDonations, ProjectDonationsPaymentInfoInterface, UserDonationInterface, ProjectInterface } from './models'
 import winstonLogger from '../logger'
 
@@ -150,25 +150,8 @@ export const myDonations = async (_: any, args: any, context: any) => {
             const allProjects: ProjectInterface[] = await Projects.find({})
             const allProjectsMap: Map<String, ProjectInterface> = getMapFromArray(allProjects, '_id')
             let myDonationsResponse: MyDonationsResponse[] = userDonations.map((userDonation: UserDonationInterface) => {
-                let project: ProjectInterface | undefined = allProjectsMap.get(String(userDonation.projectId))
-                if (!project) {
-                    throw new Error('Project does not exist')
-                }
-                let { type, title, subtitle, cost, content } = project
-                let { treeId, status, createdAt, photoTimeline } = userDonation
-                return {
-                    type,
-                    title,
-                    subtitle,
-                    cost,
-                    content,
-                    treeId,
-                    status,
-                    createdAt,
-                    photoTimeline
-                }
+                return prepareDonationResponseItem(userDonation.projectId, user, allProjectsMap, userDonation)
             })
-            // console.log(JSON.stringify(myDonationsResponse),'responsemyDonation')
             return myDonationsResponse
         }
         else {
@@ -199,30 +182,13 @@ export const getAllUserDonations = async (_: any, args: any, context: any) => {
 
             const allUsersForDonation: UserInterface[] = await Users.find({ _id: { $in: allUserIds } })
             const allUsersForDonationMap: Map<String, UserInterface> = getMapFromArray(allUsersForDonation, '_id')
-            // console.log(allUsersForDonationMap, 'allUsersForDonationMap')
 
             let allDonationsResponse: MyDonationsResponse[] = allUserDonations.map((userDonation: UserDonationInterface) => {
-                let project: ProjectInterface | undefined = allProjectsMap.get(String(userDonation.projectId))
                 let user: UserInterface | undefined = allUsersForDonationMap.get(String(userDonation.userId))
-                if (!project || !user) {
+                if (user)
+                    return prepareDonationResponseItem(userDonation.projectId, user, allProjectsMap, userDonation)
+                else {
                     throw new Error('Project/User does not exist')
-                }
-                let { email, instaProfile, twitterProfile } = user
-                let { type, title, subtitle, cost, content } = project
-                let { treeId, status, createdAt, photoTimeline } = userDonation
-                return {
-                    email,
-                    instaProfile,
-                    twitterProfile,
-                    type,
-                    title,
-                    subtitle,
-                    cost,
-                    content,
-                    treeId,
-                    status,
-                    createdAt,
-                    photoTimeline
                 }
             })
             return allDonationsResponse
