@@ -272,6 +272,7 @@ export const addPhotoToTimeline = async (_: any, args: any, context: any) => {
                 })
             }
         }
+        userDonation.status = "PLANTED"
         userDonation.photoTimeline = changedPhotoTimeline
         let response = await userDonation.save()
         return response ? prepareDonationResponseItem(userDonation.projectId, userFromDonation, allProjectsMap, userDonation) : { status: 'error' }
