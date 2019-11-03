@@ -1,12 +1,11 @@
 import express from 'express'
 import lodash from 'lodash'
-import path from 'path'
-import https from 'https'
-import fs from 'fs'
 import { GraphQLJSONObject } from 'graphql-type-json'
-import { ApolloServer, gql } from 'apollo-server-express'
+import gql from 'graphql-tag'
 import resolvers from './resolvers'
 import { ScalarDate } from './scalars'
+import { makeExecutableSchema } from 'graphql-tools';
+import graphqlHTTP from 'express-graphql';
 
 require('./config');
 
@@ -167,27 +166,24 @@ const typeDefs = gql`
     }
 `;
 
-const server = new ApolloServer({
+const schema = makeExecutableSchema({
   typeDefs,
   resolvers: lodash.assign({ JSON: GraphQLJSONObject, Date: ScalarDate }, resolvers),
-  introspection: true,
-  playground: true,
+});
+
+const app: express.Application = express()
+
+app.use('/graphql', graphqlHTTP({
+  schema,
+  graphiql: !(process.env.NODE_ENV === 'production') ,
   context: ({ req }: any) => {
     let headers = req.headers
     return { headers }
-  },
-  formatError: (error: any) => {
-    return error;
-  },
-  formatResponse: (response: any, query: any) => {
-    return response;
-  },
-});
-const app: express.Application = express()
+  }
+}))
 
-server.applyMiddleware({ app });
-
-app.listen({ port: 5000 }, () =>
-  console.log(`🚀 Server ready at http://localhost:5000${server.graphqlPath}`)
+const port = process.env.PORT || 5000
+app.listen({ port }, () =>
+  console.log(`🚀 Server ready at http://localhost:${port}/graphql`)
 
 );
