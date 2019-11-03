@@ -1,5 +1,8 @@
 cd moretrees-server
-ps aux | grep 'node /home/ec2-user' > output.txt
-wc -l output.txt
-kill -9 $(ps aux | grep 'node /home/ec2-user' | awk 'NR==1{print $2}')
-npm run dev
+
+for pid in `ps aux | grep [s]erver.ts | awk '{print $2}'` ; do kill -9 $pid ; done
+
+echo "After kill command, node processes => "
+ps aux | grep '[s]erver.ts'
+
+npm run start:prod

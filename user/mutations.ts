@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import lodash from 'lodash'
 import AWS from 'aws-sdk'
 
-import { EMAIL, RAZORPAY_INSTANCE, confirmValidityOfUser, getAccessToken, createError, mergeJsons, getNextId, validateRegisterUser, prepareObjectForLog, getMapFromArray, uploadImageToImgur, prepareDonationResponseItem } from '../utils'
+import { EMAIL, RAZORPAY_INSTANCE, confirmValidityOfUser, getAccessToken, createError, mergeJsons, getNextId, validateRegisterUser, prepareObjectForLog, getMapFromArray, prepareDonationResponseItem } from '../utils'
 import { ProjectDonationsPaymentInfo, Projects, ProjectInterface, DonationItemInterface, UserDonations, UserDonationInterface, UserInterface, Users, COLLECTION_NAME, ProjectDonationsPaymentInfoInterface, PhotoTimelineInterface } from './models'
 
 import winstonLogger from '../logger'

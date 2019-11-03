@@ -5,9 +5,9 @@
   "scripts": {
     "tsc": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server",
+    "start": "NODE_ENV=development ts-node server.ts",
     "dev": "NODE_ENV=development ts-node-dev --respawn --transpileOnly server.ts",
-    "start:prod": "NODE_ENV=production npm run start"
+    "start:prod": "NODE_ENV=production ts-node server.ts"
   },
   "author": "",
   "license": "ISC",
