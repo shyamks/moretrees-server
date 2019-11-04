@@ -1,7 +1,6 @@
 ## Moretrees Server
 
 Server for the [web client](https://github.com/shyamks/moretrees-client).
-Graphql server plugged in to mongodb for the [client]
 
 ### Set up env 
 
