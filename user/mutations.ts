@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import lodash from 'lodash'
 
-import { EMAIL, RAZORPAY_INSTANCE, confirmValidityOfUser, getAccessToken, createError, mergeJsons, getNextId, validateRegisterUser, prepareObjectForLog, getMapFromArray, prepareDonationResponseItem } from '../utils'
+import { EMAIL, RAZORPAY_INSTANCE, confirmValidityOfUser, getAccessToken, createError, mergeJsons, getNextId, validateRegisterUser, prepareObjectForLog, getMapFromArray, prepareDonationResponseItem, prepareResponse } from '../utils'
 import { ProjectDonationsPaymentInfo, Projects, ProjectInterface, DonationItemInterface, UserDonations, UserDonationInterface, UserInterface, Users, COLLECTION_NAME, ProjectDonationsPaymentInfoInterface, PhotoTimelineInterface } from './models'
 
 import winstonLogger from '../logger'
@@ -14,7 +14,7 @@ export const registerUser = async (_: any, args: any) => {
             if (validateRegisterUser({ username, password, email })) {
                 let response: UserInterface = await Users.create({ username, password, email, mobile, createdAt: new Date() });
                 response.accessToken = getAccessToken(EMAIL, args.email);
-                return response;
+                return prepareResponse(response.toObject());
             }
             else {
                 return createError('Please type in valid details', 'input error');
@@ -44,7 +44,7 @@ export const resetPassword = async (_: any, args: any, context: any) => {
             const mergedUserForResponse = mergeJsons(user, finalInput)
             console.log(mergedUserForResponse, 'finalInput')
             let response = await mergedUserForResponse.save()
-            return response ? { status: 'success' } : createError('Error occured during update')
+            return response ? prepareResponse({ status: 'success' }) : createError('Error occured during update')
         }
         return createError('Password and ConfirmPassword not valid')
     } catch (e) {
@@ -70,8 +70,8 @@ export const updateUser = async (_: any, args: any, context: any) => {
             }
             console.log(finalInput, 'finalInput')
             const mergedUserForResponse = mergeJsons(user, finalInput)
-            let response = await mergedUserForResponse.save()
-            return response ? response : createError('Error occured during update')
+            let response: UserInterface  = await mergedUserForResponse.save()
+            return response ? prepareResponse(response.toObject()) : createError('Error occured during update')
         }
         return createError('Email not valid')
     } catch (e) {
@@ -103,7 +103,7 @@ export const updateUsers = async (_: any, args: any, context: any) => {
                     if (!response) createError('Error occured during update')
                 }
                 const users = await Users.find({})
-                return { response: users, status: 'success' }
+                return prepareResponse(users, 'response')
             }
             return createError('User not the boss. Bye')
         }
@@ -221,7 +221,7 @@ export const makeDonation = async (_: any, args: any, context: any) => {
                 console.log(donationPaymentResult, 'yeyeyey')
                 let returnValue = { status: 'success', referenceId: donationPaymentResult.id }
                 winstonLogger.info(`Transaction SUCCESSFULL => ${prepareObjectForLog({ ...returnValue, ...donationPaymentResult })} `)
-                return returnValue
+                return prepareResponse(returnValue)
             }
         }
     } catch (e) {
@@ -274,7 +274,7 @@ export const addPhotoToTimeline = async (_: any, args: any, context: any) => {
         userDonation.status = "PLANTED"
         userDonation.photoTimeline = changedPhotoTimeline
         let response = await userDonation.save()
-        return response ? prepareDonationResponseItem(userDonation.projectId, userFromDonation, allProjectsMap, userDonation) : { status: 'error' }
+        return response ? prepareResponse(prepareDonationResponseItem(userDonation.projectId, userFromDonation, allProjectsMap, userDonation), 'myDonation') : createError('error aagide')
 
     } catch(e) {
         console.log(e)
@@ -284,7 +284,7 @@ export const addPhotoToTimeline = async (_: any, args: any, context: any) => {
     }
 }
 
-export const updateSaplings = async (_: any, args: any, context: any) => {
+export const updateProjects = async (_: any, args: any, context: any) => {
     try {
         let { input, email: emailFromRequest, twitterId, instaId } = args;
         let { isValid, decodedContext } = await confirmValidityOfUser({ email: emailFromRequest, twitterId, instaId }, context)
@@ -312,14 +312,14 @@ export const updateSaplings = async (_: any, args: any, context: any) => {
                     }
                 }
                 const saplings = await Projects.find({})
-                return { response: saplings, status: 'success' }
+                return prepareResponse({ response: saplings, status: 'success' })
             }
             return createError('User not admin. Sneaky.')
 
         }
         return createError('Email not valid')
     } catch (e) {
-        winstonLogger.info(`Error in mutations:updateSaplings =>  ${prepareObjectForLog(e)} `)
+        winstonLogger.info(`Error in mutations:updateProjects =>  ${prepareObjectForLog(e)} `)
         return createError(e);
     }
 }

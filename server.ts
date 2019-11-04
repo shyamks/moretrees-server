@@ -6,6 +6,7 @@ import resolvers from './resolvers'
 import { ScalarDate } from './scalars'
 import { makeExecutableSchema } from 'graphql-tools';
 import graphqlHTTP from 'express-graphql';
+import cors from 'cors'
 
 require('./config');
 
@@ -31,7 +32,7 @@ const userInput = `
         availableWhat: String
 `
 
-const saplingOptions = `
+const projects = `
       id: String,
       status: String,
       type: String,
@@ -49,9 +50,10 @@ const typeDefs = gql`
         id: ID!
         accessToken: String
         ${userInput}
-        type: String,
+        type: String
         error: String
         message: String
+        responseStatus: Response
     }
     input UserInput {
         ${userInput}
@@ -61,24 +63,26 @@ const typeDefs = gql`
       ${volunteerOptions}
     }
     input SaplingOptionsInput {
-      ${saplingOptions}
+      ${projects}
     }
-    input UpdateSaplingsInput {
-      ${saplingOptions}
+    input UpdateProjectsInput {
+      ${projects}
       createNewRow: Boolean
       removeRow: Boolean
     }
-    type SaplingOptionsOutput {
-      ${saplingOptions}
+    type Projects {
+      ${projects}
     }
     type DonateStatus {
       email: String
       id: String
+      responseStatus: Response
     }
     type ProfileInfo {
       email: String
       id: String
       username: String
+      responseStatus: Response
     }
     input DonationPaymentInput {
       email: String!
@@ -99,15 +103,13 @@ const typeDefs = gql`
       order: Int
     }
 
-    type DonationPaymentOutput {
+    type Response {
       status: String
-      error: String
-      referenceId: String
+      text: String
     }
-
     type PhotoTimeline{
-      order: Int,
-      text: String,
+      order: Int
+      text: String
       photoUrl: String
     }
     type MyDonationsOut {
@@ -120,6 +122,7 @@ const typeDefs = gql`
       cost: String,
       content: String,
       treeId: Int,
+      responseStatus: Response,
       status: String,
       createdAt: Date,
       photoTimeline: [PhotoTimeline]
@@ -128,30 +131,68 @@ const typeDefs = gql`
     type Status {
       status: String
       error: String
+      responseStatus: Response
     }
 
-    type UpdateSaplingsResponse {
-      response: [SaplingOptionsOutput]!
+    type ConfirmTokenResponse {
+      responseStatus: Response
+      email: String
+    }
+
+    type GetAllUsersResponse {
+      users: [User]
+      responseStatus: Response
+    }
+
+    type GetProjects {
+      projects: [Projects]!
+      responseStatus: Response
+    }
+
+    type MyDonationsResponse {
+      myDonations: [MyDonationsOut]
+      responseStatus: Response
+    }
+
+    type AllDonationsResponse {
+      allDonations: [MyDonationsOut]
+      responseStatus: Response
+    }
+
+    type UpdateProjectsResponse {
+      response: [Projects]!
       status: String
       error: String
+      responseStatus: Response
     }
 
     type UpdateUsersResponse {
       response: [User]!
+      responseStatus: Response
+    }
+
+    type DonationPaymentOutput {
       status: String
       error: String
+      referenceId: String
+      responseStatus: Response
+    }
+
+    type AddPhotoToTimelineResponse {
+      myDonation: MyDonationsOut
+      responseStatus: Response
     }
 
     type Query {
         loginUser(password: String, email: String!): User
         getUser(email: String, twitterId: String, instaId: String): User
         forgotPassword(email: String!): Status
-        confirmToken(token: String!): Status
-        getAllUsers(email: String, twitterId: String, instaId: String): [User]
+        confirmToken(token: String!): ConfirmTokenResponse
+        getAllUsers(email: String, twitterId: String, instaId: String): GetAllUsersResponse
 
-        getProjects(status: String): [SaplingOptionsOutput]!
-        myDonations(email: String, twitterId: String, instaId: String): [MyDonationsOut]
-        getAllUserDonations(email: String, twitterId: String, instaId: String): [MyDonationsOut]
+        getProjects(status: String): GetProjects
+        myDonations(email: String, twitterId: String, instaId: String): MyDonationsResponse
+        getAllUserDonations(email: String, twitterId: String, instaId: String): AllDonationsResponse
     }
     type Mutation {
         updateUser(input: UserInput): User
@@ -160,9 +201,9 @@ const typeDefs = gql`
         registerUser(username: String!, email: String!, password: String!, phone: String): User
         resetPassword(password: String!, confirmPassword: String!, token: String!): Status
         makeDonation(input: DonationPaymentInput, email: String, twitterId: String, instaId: String): DonationPaymentOutput
-        addPhotoToTimeline(input: PhotoTimelineInput, email: String, twitterId: String, instaId: String): MyDonationsOut
-
-        updateSaplings(input: [UpdateSaplingsInput]!, email: String, twitterId: String, instaId: String) : UpdateSaplingsResponse
+        addPhotoToTimeline(input: PhotoTimelineInput, email: String, twitterId: String, instaId: String): AddPhotoToTimelineResponse
+        
+        updateProjects(input: [UpdateProjectsInput]!, email: String, twitterId: String, instaId: String) : UpdateProjectsResponse
     }
 `;
 
@@ -173,14 +214,13 @@ const schema = makeExecutableSchema({
 
 const app: express.Application = express()
 
-app.use('/graphql', graphqlHTTP({
-  schema,
-  graphiql: !(process.env.NODE_ENV === 'production') ,
-  context: ({ req }: any) => {
-    let headers = req.headers
-    return { headers }
-  }
-}))
+// app.use(cors({ origin: process.env.FRONTEND_URL }))
+app.use('/graphql', cors(),
+  graphqlHTTP((request, response, graphQLParams) => ({
+    schema,
+    graphiql: !(process.env.NODE_ENV === 'production'),
+    context: { headers: request.headers }
+  })))
 
 const port = process.env.PORT || 5000
 app.listen({ port }, () =>

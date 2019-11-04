@@ -29,7 +29,8 @@ const userSchema = new Schema({
   availableWhat: String,
   createdAt: Date,
   resetPasswordToken: String,
-  resetPasswordExpiry: Date
+  resetPasswordExpiry: Date,
+  accessToken: String
 })
 export const Users = mongoose.model<UserInterface>(COLLECTION_NAME.USERS, userSchema)
 export interface UserInterface extends mongoose.Document {

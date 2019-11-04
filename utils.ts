@@ -150,7 +150,12 @@ export const prepareObjectForLog = (obj: any) => {
 }
 
 export const createError = (object: any, status = 'error') => {
-    return { error: object, status };
+    return { responseStatus : { text: object, status }};
+}
+
+export const prepareResponse = (object: any, key: string | null = null) => {
+    return key ? { responseStatus: { text: 'success', status: 'success' }, [key]: object }
+                : { responseStatus: { text: 'success', status: 'success' }, ...object}
 }
 
 export const createSuccess = (status = 'success') => {

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import crypto from 'crypto'
 
-import { EMAIL, FE, getAccessToken, sendMail, confirmValidityOfUser, createError, mergeJsons, prepareObjectForLog, getMapFromArray, prepareDonationResponseItem } from '../utils'
+import { EMAIL, FE, getAccessToken, sendMail, confirmValidityOfUser, createError, mergeJsons, prepareObjectForLog, getMapFromArray, prepareDonationResponseItem, prepareResponse } from '../utils'
 import { Users, Projects, ProjectDonationsPaymentInfo, UserInterface, UserDonations, ProjectDonationsPaymentInfoInterface, UserDonationInterface, ProjectInterface } from './models'
 import winstonLogger from '../logger'
 
@@ -10,11 +10,11 @@ const ObjectId = mongoose.Types.ObjectId
 
 export const loginUser = async (_: any, args: any) => {
     try {
-        let user = await Users.findOne({ email: args.email });
+        let user: UserInterface | null = await Users.findOne({ email: args.email });
         if (user && user.password === args.password) {
             let token = getAccessToken(EMAIL, args.email);
-            let response = mergeJsons(user, { accessToken: token });
-            return response;
+            user.accessToken = token
+            return prepareResponse(user.toObject());
         }
         else {
             return createError('User with this email does not exist or the password is incorrect');
@@ -52,7 +52,7 @@ export const forgotPassword = async (_: any, args: any) => {
 
             console.log('sendMailResponse', JSON.stringify(sendMailResponse))
 
-            return response ? { status: 'success' } : createError('Error occured during update');
+            return response ? prepareResponse({ status: 'success' }) : createError('Error occured during update');
         }
         else {
             return createError('User with this email does not exist');
@@ -72,7 +72,7 @@ export const confirmToken = async (_: any, args: any) => {
                 $gt: Date.now()
             }
         })
-        return user ? { email: user.email } : createError('No email matches with token')
+        return user ? prepareResponse({ email: user.email }) : createError('No email matches with token')
     } catch (e) {
         winstonLogger.info(`Error in query:confirmToken =>  ${prepareObjectForLog(e)} `)
         return createError(e)
@@ -83,8 +83,8 @@ export const getUser = async (_: any, args: any, context: any) => {
         let { email, twitterId, instaId } = args
         let { isValid, decodedContext } = await confirmValidityOfUser({ email, twitterId, instaId }, context)
         if (isValid) {
-            const user = await Users.findOne(decodedContext);
-            return user
+            const user: UserInterface | null = await Users.findOne(decodedContext);
+            return user ? prepareResponse(user.toObject()) : createError('User with this email does not exist or the password is incorrect')
         }
         else {
             return createError('User with this email does not exist or the password is incorrect')
@@ -100,7 +100,7 @@ export const getAllUsers = async (_: any, args: any, context: any) => {
         let { isValid, decodedContext } = await confirmValidityOfUser({ email, twitterId, instaId }, context)
         if (isValid) {
             let users = await Users.find({});
-            return users
+            return prepareResponse(users, 'users')
         }
         else {
             return createError('User with this email does not exist or the password is incorrect')
@@ -114,7 +114,7 @@ export const getProjects = async (_: any, args: any, context: any) => {
     try {
         let { status } = args
         let projects = await Projects.find(status ? { status } : {})
-        return projects
+        return prepareResponse(projects, 'projects')
     } catch (e) {
         winstonLogger.info(`Error in query:getProjects =>  ${prepareObjectForLog(e)} `)
         return createError(e)
@@ -152,7 +152,7 @@ export const myDonations = async (_: any, args: any, context: any) => {
             let myDonationsResponse: MyDonationsResponse[] = userDonations.map((userDonation: UserDonationInterface) => {
                 return prepareDonationResponseItem(userDonation.projectId, user, allProjectsMap, userDonation)
             })
-            return myDonationsResponse
+            return prepareResponse(myDonationsResponse, 'myDonations')
         }
         else {
             return createError('User with this email does not exist or the password is incorrect')
@@ -191,7 +191,7 @@ export const getAllUserDonations = async (_: any, args: any, context: any) => {
                     throw new Error('Project/User does not exist')
                 }
             })
-            return allDonationsResponse
+            return prepareResponse(allDonationsResponse, 'allDonations')
         }
         else {
             return createError('User with this email does not exist or the password is incorrect')
