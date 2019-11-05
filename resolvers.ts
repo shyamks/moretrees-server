@@ -1,4 +1,4 @@
-const { registerUser, resetPassword, updateUser, updateUsers, makeDonation, addPhotoToTimeline, updateProjects } = require('./user/mutations');
+const { registerUser, resetPassword, updateUser, updateUsers, makeDonation, updateUserDonations, addPhotoToTimeline, updateProjects } = require('./user/mutations');
 
 const { loginUser, getUser, forgotPassword, confirmToken, getProjects, myDonations, getAllUserDonations, getAllUsers} = require('./user/query');
 
@@ -19,6 +19,7 @@ export = {
         updateUser,
         updateUsers,
         makeDonation,
+        updateUserDonations,
         addPhotoToTimeline,
         updateProjects
     }

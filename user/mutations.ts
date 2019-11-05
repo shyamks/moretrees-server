@@ -5,6 +5,7 @@ import { EMAIL, RAZORPAY_INSTANCE, confirmValidityOfUser, getAccessToken, create
 import { ProjectDonationsPaymentInfo, Projects, ProjectInterface, DonationItemInterface, UserDonations, UserDonationInterface, UserInterface, Users, COLLECTION_NAME, ProjectDonationsPaymentInfoInterface, PhotoTimelineInterface } from './models'
 
 import winstonLogger from '../logger'
+import { MyDonationsResponse } from './query'
 
 export const registerUser = async (_: any, args: any) => {
     try {
@@ -231,6 +232,61 @@ export const makeDonation = async (_: any, args: any, context: any) => {
     }
 }
 
+export const updateUserDonations = async (_: any, args: any, context: any) => {
+    try {
+        let { input, email: emailFromRequest, twitterId, instaId } = args;
+        let { isValid, decodedContext } = await confirmValidityOfUser({ email: emailFromRequest, twitterId, instaId }, context)
+        if (!isValid)
+            return createError('User not valid')
+        const user: UserInterface | null = await Users.findOne(decodedContext)
+        const allProjects: ProjectInterface[] = await Projects.find({})
+        const allProjectsMap: Map<String, ProjectInterface> = getMapFromArray(allProjects, '_id')
+        if (!user)
+            return createError('User does not exit.')
+        if (user.type != 'admin')
+            return createError('User not admin. Sneaky.')
+        // update user donations
+        for (let i = 0; i < input.length; i++) {
+            let { treeId, status } = input[i]
+            const userDonation: UserDonationInterface | null = await UserDonations.findOne({ treeId })
+            if (!userDonation)
+                return createError('Tree does not exist.')
+            const userFromDonation: UserInterface | null = await Users.findOne({ _id: userDonation.userId })
+            if (!userFromDonation)
+                return createError('User from donation does not exist.')
+            userDonation.status = status
+            let response = await userDonation.save()
+            if (!response) createError('Error occured during update')
+        }
+        // get allUserDonations response
+
+        const allUserDonations: UserDonationInterface[] = await UserDonations.find({})
+        const allUserIds: mongoose.Types.ObjectId[] = allUserDonations.reduce((array: string[], userDonation: UserDonationInterface) => {
+            let userId = userDonation.userId
+            if (!array.includes(userId))
+                return [...array, userId]
+            return array
+        }, []).map((userId: string) => mongoose.Types.ObjectId(userId))
+
+        const allUsersForDonation: UserInterface[] = await Users.find({ _id: { $in: allUserIds } })
+        const allUsersForDonationMap: Map<String, UserInterface> = getMapFromArray(allUsersForDonation, '_id')
+
+        let allDonationsResponse: MyDonationsResponse[] = allUserDonations.map((userDonation: UserDonationInterface) => {
+            let user: UserInterface | undefined = allUsersForDonationMap.get(String(userDonation.userId))
+            if (user)
+                return prepareDonationResponseItem(userDonation.projectId, user, allProjectsMap, userDonation)
+            else {
+                throw new Error('Project/User does not exist')
+            }
+        })
+        return prepareResponse(allDonationsResponse, 'allDonations')
+    } catch (e) {
+        console.log(e)
+        winstonLogger.info(`Error in mutations:addPhotoToTimeline =>  ${prepareObjectForLog(e)} `)
+        return createError(e);
+    }
+}
+
 export const addPhotoToTimeline = async (_: any, args: any, context: any) => {
     try {
         let { input, email: emailFromRequest, twitterId, instaId } = args;
@@ -279,7 +335,6 @@ export const addPhotoToTimeline = async (_: any, args: any, context: any) => {
     } catch(e) {
         console.log(e)
         winstonLogger.info(`Error in mutations:addPhotoToTimeline =>  ${prepareObjectForLog(e)} `)
-        return {status: 'error'}
         return createError(e);
     }
 }

@@ -122,7 +122,7 @@ export const getProjects = async (_: any, args: any, context: any) => {
 
 }
 
-type MyDonationsResponse = {
+export type MyDonationsResponse = {
     type: string,
     title: string,
     subtitle: string,

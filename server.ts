@@ -102,6 +102,10 @@ const typeDefs = gql`
       link: String!,
       order: Int
     }
+    input UpdateUserDonationInput {
+      treeId: Int!,
+      status: String!
+    }
 
     type Response {
       status: String
@@ -178,7 +182,7 @@ const typeDefs = gql`
       responseStatus: Response
     }
 
-    type AddPhotoToTimelineResponse {
+    type UpdatedUserDonationResponse {
       myDonation: MyDonationsOut
       responseStatus: Response
     }
@@ -201,7 +205,8 @@ const typeDefs = gql`
         registerUser(username: String!, email: String!, password: String!, phone: String): User
         resetPassword(password: String!, confirmPassword: String!, token: String!): Status
         makeDonation(input: DonationPaymentInput, email: String, twitterId: String, instaId: String): DonationPaymentOutput
-        addPhotoToTimeline(input: PhotoTimelineInput, email: String, twitterId: String, instaId: String): AddPhotoToTimelineResponse
+        updateUserDonations(input: [UpdateUserDonationInput]!, email: String, twitterId: String, instaId: String): AllDonationsResponse
+        addPhotoToTimeline(input: PhotoTimelineInput, email: String, twitterId: String, instaId: String): UpdatedUserDonationResponse
         
         updateProjects(input: [UpdateProjectsInput]!, email: String, twitterId: String, instaId: String) : UpdateProjectsResponse
     }
