@@ -68,8 +68,9 @@ export const updateUser = async (_: any, args: any, context: any) => {
             console.log(decodedContext, 'what here')
             const user = await Users.findOne(decodedContext);
             if (!user) return createError('Email does not exist. Please try another email');
+            let hashedPassword = bcrypt.hashSync(password, HASHING_ROUNDS)
             let finalInput = {
-                username, password, phone, volunteerOptions,
+                username, password: hashedPassword, phone, volunteerOptions,
                 twitterProfile, instaProfile, fbProfile, availableWhen, availableWhat
             }
             console.log(finalInput, 'finalInput')

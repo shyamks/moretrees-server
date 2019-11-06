@@ -3,7 +3,7 @@ import crypto from 'crypto'
 import bcrypt from 'bcrypt'
 
 import { EMAIL, FE, getAccessToken, sendMail, confirmValidityOfUser, createError, mergeJsons, prepareObjectForLog, getMapFromArray, prepareDonationResponseItem, prepareResponse } from '../utils'
-import { Users, Projects, ProjectDonationsPaymentInfo, UserInterface, UserDonations, ProjectDonationsPaymentInfoInterface, UserDonationInterface, ProjectInterface } from './models'
+import { Users, Projects, UserInterface, UserDonations, UserDonationInterface, ProjectInterface } from './models'
 import winstonLogger from '../logger'
 
 
