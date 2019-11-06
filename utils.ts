@@ -16,6 +16,8 @@ const MAILER_PORT = process.env.MAILER_PORT
 
 
 export const JWT_SECRET: string = process.env.JWT_SECRET || 'hello'
+
+export const HASHING_ROUNDS = 10
 export const FE = process.env.FRONTEND_URL
 
 export const EMAIL = 'email'

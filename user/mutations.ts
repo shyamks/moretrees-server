@@ -1,7 +1,8 @@
 import mongoose from 'mongoose'
 import lodash from 'lodash'
+import bcrypt from 'bcrypt'
 
-import { EMAIL, RAZORPAY_INSTANCE, confirmValidityOfUser, getAccessToken, createError, mergeJsons, getNextId, validateRegisterUser, prepareObjectForLog, getMapFromArray, prepareDonationResponseItem, prepareResponse } from '../utils'
+import { EMAIL, RAZORPAY_INSTANCE, confirmValidityOfUser, getAccessToken, createError, mergeJsons, getNextId, validateRegisterUser, prepareObjectForLog, getMapFromArray, prepareDonationResponseItem, prepareResponse, HASHING_ROUNDS } from '../utils'
 import { ProjectDonationsPaymentInfo, Projects, ProjectInterface, DonationItemInterface, UserDonations, UserDonationInterface, UserInterface, Users, COLLECTION_NAME, ProjectDonationsPaymentInfoInterface, PhotoTimelineInterface } from './models'
 
 import winstonLogger from '../logger'
@@ -13,7 +14,8 @@ export const registerUser = async (_: any, args: any) => {
         const user = await Users.find({ email: args.email });
         if (!user.length) {
             if (validateRegisterUser({ username, password, email })) {
-                let response: UserInterface = await Users.create({ username, password, email, mobile, createdAt: new Date() });
+                let hashedPassword = bcrypt.hashSync(password, HASHING_ROUNDS)
+                let response: UserInterface = await Users.create({ username, password: hashedPassword, email, mobile, createdAt: new Date() });
                 response.accessToken = getAccessToken(EMAIL, args.email);
                 return prepareResponse(response.toObject());
             }
@@ -33,7 +35,7 @@ export const registerUser = async (_: any, args: any) => {
 export const resetPassword = async (_: any, args: any, context: any) => {
     try {
         let { password, confirmPassword, token } = args;
-        if (password === confirmPassword && password.length < 20) {
+        if (password === confirmPassword) {
             let user: UserInterface | null= await Users.findOne({
                 resetPasswordToken: token,
                 resetPasswordExpiry: {
@@ -41,7 +43,8 @@ export const resetPassword = async (_: any, args: any, context: any) => {
                 }
             })
             if (!user) return createError('Email does not exist.');
-            let finalInput = { password, resetPasswordToken: '', resetPasswordExpiry: '' }
+            let hashedPassword = bcrypt.hashSync(password, HASHING_ROUNDS)
+            let finalInput = { password: hashedPassword, resetPasswordToken: '', resetPasswordExpiry: '' }
             const mergedUserForResponse = mergeJsons(user, finalInput)
             console.log(mergedUserForResponse, 'finalInput')
             let response = await mergedUserForResponse.save()
@@ -282,7 +285,7 @@ export const updateUserDonations = async (_: any, args: any, context: any) => {
         return prepareResponse(allDonationsResponse, 'allDonations')
     } catch (e) {
         console.log(e)
-        winstonLogger.info(`Error in mutations:addPhotoToTimeline =>  ${prepareObjectForLog(e)} `)
+        winstonLogger.info(`Error in mutations:updateUserDonations =>  ${prepareObjectForLog(e)} `)
         return createError(e);
     }
 }
@@ -361,8 +364,8 @@ export const updateProjects = async (_: any, args: any, context: any) => {
                         if (!sapling) return createError('Sapling does not exist');
                         let finalInput = { status, type, title, subtitle, cost, content, remaining }
                         console.log(finalInput, 'finalInput')
-                        const mergedSapling = mergeJsons(sapling, finalInput)
-                        let response = await mergedSapling.save()
+                        const mergerdProject = mergeJsons(sapling, finalInput)
+                        let response = await mergerdProject.save()
                         if (!response) createError('Error occured during update')
                     }
                 }

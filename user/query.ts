@@ -21,7 +21,7 @@ export const isEmailAvailable = async (_: any, args: any) => {
 export const loginUser = async (_: any, args: any) => {
     try {
         let user: UserInterface | null = await Users.findOne({ email: args.email });
-        if (user && user.password === args.password) {
+        if (user && bcrypt.compareSync(args.password, user.password) ) {
             user.accessToken = getAccessToken(EMAIL, args.email);
             return prepareResponse(user.toObject());
         }
