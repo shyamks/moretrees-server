@@ -227,7 +227,7 @@ const schema = makeExecutableSchema({
 const app: express.Application = express()
 
 app.use(cors({ origin: process.env.FRONTEND_URL }))
-app.use('/graphql',
+app.use('/graphql', cors({ origin: process.env.FRONTEND_URL }),
   graphqlHTTP((request, response, graphQLParams) => ({
     schema,
     graphiql: !(process.env.NODE_ENV === 'production'),
