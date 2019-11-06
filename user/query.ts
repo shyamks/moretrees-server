@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import crypto from 'crypto'
+import bcrypt from 'bcrypt'
 
 import { EMAIL, FE, getAccessToken, sendMail, confirmValidityOfUser, createError, mergeJsons, prepareObjectForLog, getMapFromArray, prepareDonationResponseItem, prepareResponse } from '../utils'
 import { Users, Projects, ProjectDonationsPaymentInfo, UserInterface, UserDonations, ProjectDonationsPaymentInfoInterface, UserDonationInterface, ProjectInterface } from './models'
@@ -8,12 +9,20 @@ import winstonLogger from '../logger'
 
 const ObjectId = mongoose.Types.ObjectId
 
+export const isEmailAvailable = async (_: any, args: any) => {
+    try {
+        let user: UserInterface | null = await Users.findOne({ email: args.email });
+        return prepareResponse({ email: args.email, emailAvailable: !user })
+    } catch (e) {
+        winstonLogger.info(`Error in query:emailAvailable =>  ${prepareObjectForLog(e)} `)
+        return createError(e);
+    }
+}
 export const loginUser = async (_: any, args: any) => {
     try {
         let user: UserInterface | null = await Users.findOne({ email: args.email });
         if (user && user.password === args.password) {
-            let token = getAccessToken(EMAIL, args.email);
-            user.accessToken = token
+            user.accessToken = getAccessToken(EMAIL, args.email);
             return prepareResponse(user.toObject());
         }
         else {

@@ -187,8 +187,15 @@ const typeDefs = gql`
       responseStatus: Response
     }
 
+    type EmailAvailableResponse {
+      email: String
+      emailAvailable: Boolean
+      responseStatus: Response
+    }
+
     type Query {
-        loginUser(password: String, email: String!): User
+        isEmailAvailable(email: String): EmailAvailableResponse
+        loginUser(password: String, email: String): User
         getUser(email: String, twitterId: String, instaId: String): User
         forgotPassword(email: String!): Status
         confirmToken(token: String!): ConfirmTokenResponse
@@ -202,7 +209,7 @@ const typeDefs = gql`
         updateUser(input: UserInput): User
         updateUsers(input: [UserInput], email: String, twitterId: String, instaId: String): UpdateUsersResponse
 
-        registerUser(username: String!, email: String!, password: String!, phone: String): User
+        registerUser(username: String!, email: String!, password: String!, phone: String!): User
         resetPassword(password: String!, confirmPassword: String!, token: String!): Status
         makeDonation(input: DonationPaymentInput, email: String, twitterId: String, instaId: String): DonationPaymentOutput
         updateUserDonations(input: [UpdateUserDonationInput]!, email: String, twitterId: String, instaId: String): AllDonationsResponse
