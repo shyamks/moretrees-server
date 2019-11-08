@@ -63,6 +63,10 @@ const userDonationsSchema = new Schema({
   status: String,
   projectId: ObjectId,
   createdAt: Date,
+  geoLocation: {
+    latitude: String,
+    longitude: String
+  },
   photoTimeline: [{
     order: Number,
     text: String,
@@ -77,6 +81,10 @@ export interface UserDonationInterface extends mongoose.Document{
   status: string,
   projectId: string,
   createdAt: Date,
+  geoLocation: {
+    latitude: string,
+    longitude: string
+  },
   photoTimeline?: PhotoTimelineInterface[]
 }
 

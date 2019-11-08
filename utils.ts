@@ -122,7 +122,7 @@ export const prepareDonationResponseItem = (projectId: string, user: UserInterfa
     }
     let { email, instaProfile, twitterProfile } = user
     let { type, title, subtitle, cost, content } = project
-    let { treeId, status, createdAt, photoTimeline } = userDonation
+    let { treeId, status, createdAt, photoTimeline, geoLocation } = userDonation
     return {
         email,
         instaProfile,
@@ -135,6 +135,7 @@ export const prepareDonationResponseItem = (projectId: string, user: UserInterfa
         treeId,
         status,
         createdAt,
+        geoLocation,
         photoTimeline
     }
 }

@@ -102,9 +102,14 @@ const typeDefs = gql`
       link: String!,
       order: Int
     }
+    input GeoLocationInput {
+      latitude: String,
+      longitude: String
+    }
     input UpdateUserDonationInput {
       treeId: Int!,
-      status: String!
+      status: String!,
+      geoLocation: GeoLocationInput
     }
 
     type Response {
@@ -115,6 +120,10 @@ const typeDefs = gql`
       order: Int
       text: String
       photoUrl: String
+    }
+    type GeoLocation {
+      latitude: String,
+      longitude: String
     }
     type MyDonationsOut {
       email: String,
@@ -129,6 +138,7 @@ const typeDefs = gql`
       responseStatus: Response,
       status: String,
       createdAt: Date,
+      geoLocation: GeoLocation,
       photoTimeline: [PhotoTimeline]
     }
     

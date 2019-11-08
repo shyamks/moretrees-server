@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import lodash from 'lodash'
 import bcrypt from 'bcrypt'
 
-import { EMAIL, RAZORPAY_INSTANCE, confirmValidityOfUser, getAccessToken, createError, mergeJsons, getNextId, validateRegisterUser, prepareObjectForLog, getMapFromArray, prepareDonationResponseItem, prepareResponse, HASHING_ROUNDS } from '../utils'
+import { EMAIL, RAZORPAY_INSTANCE, confirmValidityOfUser, getAccessToken, createError, mergeJsons, getNextId, validateRegisterUser, prepareObjectForLog, getMapFromArray, prepareDonationResponseItem, prepareResponse, HASHING_ROUNDS, createGeoLocation } from '../utils'
 import { ProjectDonationsPaymentInfo, Projects, ProjectInterface, DonationItemInterface, UserDonations, UserDonationInterface, UserInterface, Users, COLLECTION_NAME, ProjectDonationsPaymentInfoInterface, PhotoTimelineInterface } from './models'
 
 import winstonLogger from '../logger'
@@ -251,7 +251,7 @@ export const updateUserDonations = async (_: any, args: any, context: any) => {
             return createError('User not admin. Sneaky.')
         // update user donations
         for (let i = 0; i < input.length; i++) {
-            let { treeId, status } = input[i]
+            let { treeId, status, geoLocation } = input[i]
             const userDonation: UserDonationInterface | null = await UserDonations.findOne({ treeId })
             if (!userDonation)
                 return createError('Tree does not exist.')
@@ -259,6 +259,7 @@ export const updateUserDonations = async (_: any, args: any, context: any) => {
             if (!userFromDonation)
                 return createError('User from donation does not exist.')
             userDonation.status = status
+            userDonation.geoLocation = geoLocation
             let response = await userDonation.save()
             if (!response) createError('Error occured during update')
         }
