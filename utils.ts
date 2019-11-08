@@ -82,6 +82,7 @@ export const validateRegisterUser = ({ username, password, email }: { username: 
 }
 
 export const sendMail = async (options: any) => {
+    console.log(MAILER_HOST, MAILER_PORT, MAILER_EMAIL, MAILER_PASSWORD, 'mail env variables')
     const transportOptions: any = {
         host: MAILER_HOST,
         port: MAILER_PORT,
